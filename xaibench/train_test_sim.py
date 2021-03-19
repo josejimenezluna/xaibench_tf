@@ -4,10 +4,20 @@ import os
 import numpy as np
 import pandas as pd
 from joblib import Parallel, delayed
-from molgrad.scaffold import tanimoto_sim
 from rdkit.Chem import MolFromInchi, MolFromSmiles
+from rdkit.Chem.AllChem import GetMorganFingerprint
+from rdkit.DataStructs import TanimotoSimilarity
 
 from xaibench.utils import DATA_PATH
+
+
+def tanimoto_sim(mol_i, mol_j, radius=2):
+    fp_i, fp_j = (
+        GetMorganFingerprint(mol_i, radius),
+        GetMorganFingerprint(mol_j, radius),
+    )
+    return TanimotoSimilarity(fp_i, fp_j)
+
 
 BOND_RADIUS = 2
 FP_SIZE = 1024
