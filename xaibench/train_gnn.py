@@ -17,12 +17,14 @@ from tqdm import tqdm
 
 from xaibench.utils import LOG_PATH, MODELS_PATH
 
-BLOCK_TYPE = "gcn"
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
     parser.add_argument(
         "-csv", dest="csv", type=str, required=True,
+    )
+    parser.add_argument(
+        "-bt", dest="block_type", type=str, required=False, default="gcn"
     )
     args = parser.parse_args()
 
@@ -37,7 +39,7 @@ if __name__ == "__main__":
     tensorizer = MolTensorizer()
     graph_data = smiles_to_graphs_tuple(smiles, tensorizer)
 
-    hp = get_hparams({"block_type": BLOCK_TYPE})
+    hp = get_hparams({"block_type": args.block_type})
     task_act = RegresionTaskType().get_nn_activation_fn()
     task_loss = RegresionTaskType().get_nn_loss_fn()
     target_type = TargetType("globals")
@@ -70,10 +72,10 @@ if __name__ == "__main__":
 
     os.makedirs(MODELS_PATH, exist_ok=True)
 
-    with open(os.path.join(MODELS_PATH, f"{BLOCK_TYPE}_{id_}.pt"), "wb") as handle:
+    with open(os.path.join(MODELS_PATH, f"{args.block_type}_{id_}.pt"), "wb") as handle:
         dill.dump(model, handle)
 
     os.makedirs(LOG_PATH, exist_ok=True)
 
-    with open(os.path.join(LOG_PATH, f"{BLOCK_TYPE}_{id_}.pt"), "wb") as handle:
+    with open(os.path.join(LOG_PATH, f"{args.block_type}_{id_}.pt"), "wb") as handle:
         dill.dump(losses, handle)
