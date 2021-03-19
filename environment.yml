@@ -1,0 +1,29 @@
+name: xaibench_tf
+channels:
+  - rdkit
+  - defaults
+dependencies:
+  - dill=0.3.3
+  - ipython=7.21.0
+  - joblib=1.0.1
+  - matplotlib=3.3.4
+  - networkx=2.5
+  - numpy=1.19.2
+  - pandas=1.2.2
+  - pip=21.0.1
+  - python=3.7.10
+  - rdkit=2020.09.1.0
+  - scikit-learn=0.24.1
+  - scipy=1.6.1
+  - tqdm=4.56.0
+  - pip:
+    - aiohttp==3.7.4.post0
+    - async-timeout==3.0.1
+    - beautifulsoup4==4.9.3
+    - dm-sonnet==2.0.0
+    - dm-tree==0.1.5
+    - graph-nets==1.1.0
+    - ml-collections==0.1.0
+    - more-itertools==8.7.0
+    - psycopg2-binary==2.8.6
+    - tensorflow==2.4.1
