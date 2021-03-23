@@ -56,7 +56,7 @@ if __name__ == "__main__":
         "-pairs", dest="pair_f", type=str, required=True,
     )
     parser.add_argument(
-        "-bt", dest="block_type", type=str, required=True,
+        "-bt", dest="block_type", type=str, required=False, default="gcn"
     )
     args = parser.parse_args()
 
