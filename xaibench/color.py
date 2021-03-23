@@ -62,7 +62,7 @@ if __name__ == "__main__":
 
     colors = color_pairs(pair_f=args.pair_f, block_type=args.block_type)
 
-    id_ = os.path.basename(os.path.dirname(args.pair_df))
+    id_ = os.path.basename(os.path.dirname(args.pair_f))
 
     with open(
         os.path.join(DATA_PATH, "validation_sets", id_, f"colors_{args.block_type}.pt"),
