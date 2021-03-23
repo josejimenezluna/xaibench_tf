@@ -25,8 +25,7 @@ def color_pairs(pair_f, block_type="gcn"):
     colors_pt = os.path.join(os.path.dirname(pair_f), "colors.pt")
 
     if not os.path.exists(colors_pt):
-        print(f"No colors available for id {id_}. Skipping...")
-        return
+        raise ValueError(f"No colors available for id {id_}. Skipping...")
 
     with open(os.path.join(MODELS_PATH, f"{block_type}_{id_}.pt"), "rb") as handle:
         model = dill.load(handle)
@@ -61,7 +60,6 @@ if __name__ == "__main__":
     args = parser.parse_args()
 
     colors = color_pairs(pair_f=args.pair_f, block_type=args.block_type)
-
     id_ = os.path.basename(os.path.dirname(args.pair_f))
 
     with open(
