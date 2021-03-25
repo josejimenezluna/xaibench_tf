@@ -4,7 +4,9 @@ from glob import glob
 import dill
 import matplotlib.pyplot as plt
 import numpy as np
+import pandas as pd
 from tqdm import tqdm
+from rdkit.Chem import MolFromSmiles
 
 from xaibench.color import AVAIL_METHODS
 from xaibench.determine_col import MIN_PER_COMMON_ATOMS
@@ -24,7 +26,18 @@ def color_agreement(color_true, color_pred):
     return np.mean(agreement)
 
 
-def method_comparison(all_colors_method, idx_threshold, method):
+def assign_bonds(cm, mol):
+    atom_imp = cm.nodes.numpy()
+    bond_imp = [cm.edges[idx].numpy() for idx in range(len(cm.edges)) if idx % 2 == 0]
+
+    for bond_idx, bond in enumerate(mol.GetBonds()):
+        b_imp = bond_imp[bond_idx] / 2
+        atom_imp[bond.GetBeginAtomIdx()] += b_imp
+        atom_imp[bond.GetEndAtomIdx()] += b_imp
+    return atom_imp
+
+
+def method_comparison(all_colors_method, idx_threshold, method, assign_bonds=False):
     avg_scores = []
     idx_valid = []
 
@@ -34,16 +47,29 @@ def method_comparison(all_colors_method, idx_threshold, method):
         with open(os.path.join(dirname, "colors.pt"), "rb") as handle:
             colors = dill.load(handle)
 
+        if assign_bonds:
+            pair_df = pd.read_csv(os.path.join(dirname, "pairs.csv"))
+            mols = [
+                (MolFromSmiles(mi), MolFromSmiles(mj))
+                for mi, mj in zip(pair_df["smiles_i"], pair_df["smiles_j"])
+            ]
+
         colors = [col[idx_threshold] for col in colors]
 
         with open(color_method_f, "rb") as handle:
             colors_method = dill.load(handle)
 
         if method in AVAIL_METHODS:
-            colors_method = [
-                (cm[0].nodes.numpy(), cm[1].nodes.numpy())
-                for cm in colors_method[method.__name__]
-            ]
+            if assign_bonds:
+                colors_method = [
+                    (assign_bonds(cm[0], mol[0]), assign_bonds(cm[1], mol[1]))
+                    for cm, mol in zip(colors_method[method.__name__], mols)
+                ]
+            else:
+                colors_method = [
+                    (cm[0].nodes.numpy(), cm[1].nodes.numpy())
+                    for cm in colors_method[method.__name__]
+                ]
 
         if sum(1 for _ in filter(None.__ne__, colors)) > 0:
             scores = []
@@ -67,7 +93,9 @@ if __name__ == "__main__":
     os.makedirs(FIG_PATH, exist_ok=True)
 
     for bt in BLOCK_TYPES + ["rf"]:
-        colors_method = glob(os.path.join(DATA_PATH, "validation_sets", "*", f"colors_{bt}.pt",))
+        colors_method = glob(
+            os.path.join(DATA_PATH, "validation_sets", "*", f"colors_{bt}.pt",)
+        )
 
         f, axs = plt.subplots(nrows=1, ncols=4)
 
@@ -78,9 +106,7 @@ if __name__ == "__main__":
                 )
 
                 axs[0].hist(scores_method, bins=50)
-                axs[0].axvline(
-                    np.median(scores_method), linestyle="--", color="black"
-                )
+                axs[0].axvline(np.median(scores_method), linestyle="--", color="black")
                 axs[0].set_xlabel("Diff.")
 
             for idx_method, method in enumerate(AVAIL_METHODS):
@@ -94,14 +120,11 @@ if __name__ == "__main__":
                 )
                 axs[idx_method + 1].set_xlabel(method.__name__)
 
-
             plt.suptitle("Average agreement between attributions and coloring")
             plt.savefig(
-                os.path.join(FIG_PATH, f"color_agreement_{bt}_{idx_th}.png"),
-                dpi=300,
+                os.path.join(FIG_PATH, f"color_agreement_{bt}_{idx_th}.png"), dpi=300,
             )
             plt.close()
-
 
     # TODO: these plots need to be redone
 

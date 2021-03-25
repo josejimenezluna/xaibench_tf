@@ -19,7 +19,6 @@ def featurize_ecfp4(mol, fp_size=1024, bond_radius=2):
     return arr
 
 
-
 TEST_SEED = 1337
 N_TREES = 1000
 N_JOBS = int(os.environ["LSB_DJOB_NUMPROC"])
