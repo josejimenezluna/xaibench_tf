@@ -11,13 +11,29 @@ from graph_attribution.graphnet_techniques import (
     GradCAM,
     GradInput,
 )
+from graph_nets.graphs import GraphsTuple
 
 from xaibench.utils import DATA_PATH, MODELS_PATH
 
-physical_devices = tf.config.list_physical_devices("GPU")
-tf.config.experimental.set_memory_growth(physical_devices[0], True)
+# physical_devices = tf.config.list_physical_devices("GPU")
+# tf.config.experimental.set_memory_growth(physical_devices[0], True)
 
-AVAIL_METHODS = [GradInput, CAM, GradCAM]
+AVAIL_METHODS = [IntegratedGradients, GradInput, CAM, GradCAM]
+
+
+def ig_ref(g):
+    nodes = g.nodes * 0.0
+    edges = g.edges * 0.0
+    g_ref = GraphsTuple(
+        nodes=nodes,
+        edges=edges,
+        receivers=g.receivers,
+        senders=g.senders,
+        globals=g.globals,
+        n_node=g.n_node,
+        n_edge=g.n_edge,
+    )
+    return g_ref
 
 
 def color_pairs(pair_f, block_type="gcn"):
@@ -38,12 +54,17 @@ def color_pairs(pair_f, block_type="gcn"):
         smiles_to_graphs_tuple(df["smiles_j"], tensorizer),
     )
 
-    colors = {}
-
     for col_method in AVAIL_METHODS:
+        colors = {}
+        extra_kwargs = {}
+
+        if col_method == IntegratedGradients:
+            extra_kwargs["num_steps"] = 500
+            extra_kwargs["reference_fn"] = ig_ref
+
         col_i, col_j = (
-            col_method().attribute(g_i, model),
-            col_method().attribute(g_j, model),
+            col_method(**extra_kwargs).attribute(g_i, model),
+            col_method(**extra_kwargs).attribute(g_j, model),
         )
         assert len(col_i) == len(col_j)
         colors[col_method.__name__] = [(c_i, c_j) for c_i, c_j in zip(col_i, col_j)]
