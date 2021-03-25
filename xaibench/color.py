@@ -10,6 +10,7 @@ from graph_attribution.graphnet_techniques import (
     CAM,
     GradCAM,
     GradInput,
+    AttentionWeights
 )
 from graph_nets.graphs import GraphsTuple
 
@@ -57,6 +58,9 @@ def color_pairs(pair_f, block_type="gcn"):
     for col_method in AVAIL_METHODS:
         colors = {}
         extra_kwargs = {}
+
+        if col_method == AttentionWeights and block_type != "gat":
+            continue
 
         if col_method == IntegratedGradients:
             extra_kwargs["num_steps"] = 500
