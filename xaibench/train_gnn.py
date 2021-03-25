@@ -55,6 +55,7 @@ if __name__ == "__main__":
             target_type=target_type,
             n_layers=hp.n_layers,
         )
+        model(graph_data) # one pass needed for init
 
         optimizer = snt.optimizers.Adam(hp.learning_rate)
 

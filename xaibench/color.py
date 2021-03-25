@@ -6,6 +6,7 @@ import pandas as pd
 import tensorflow as tf
 from graph_attribution.featurization import MolTensorizer, smiles_to_graphs_tuple
 from graph_attribution.graphnet_techniques import (
+    IntegratedGradients
     CAM,
     GradCAM,
     GradInput,
@@ -13,8 +14,8 @@ from graph_attribution.graphnet_techniques import (
 
 from xaibench.utils import DATA_PATH, MODELS_PATH
 
-# physical_devices = tf.config.list_physical_devices("GPU")
-# tf.config.experimental.set_memory_growth(physical_devices[0], True)
+physical_devices = tf.config.list_physical_devices("GPU")
+tf.config.experimental.set_memory_growth(physical_devices[0], True)
 
 AVAIL_METHODS = [GradInput, CAM, GradCAM]
 
