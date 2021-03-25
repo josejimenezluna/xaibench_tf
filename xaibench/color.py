@@ -6,7 +6,7 @@ import pandas as pd
 import tensorflow as tf
 from graph_attribution.featurization import MolTensorizer, smiles_to_graphs_tuple
 from graph_attribution.graphnet_techniques import (
-    IntegratedGradients
+    IntegratedGradients,
     CAM,
     GradCAM,
     GradInput,
