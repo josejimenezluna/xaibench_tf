@@ -8,7 +8,7 @@ from tqdm import tqdm
 
 from xaibench.color import AVAIL_METHODS
 from xaibench.determine_col import MIN_PER_COMMON_ATOMS
-from xaibench.utils import DATA_PATH, FIG_PATH
+from xaibench.utils import DATA_PATH, FIG_PATH, BLOCK_TYPES
 
 N_THRESHOLDS = len(MIN_PER_COMMON_ATOMS)
 
@@ -66,41 +66,41 @@ def method_comparison(all_colors_method, idx_threshold, method):
 if __name__ == "__main__":
     os.makedirs(FIG_PATH, exist_ok=True)
 
-    colors_method = glob(
-        os.path.join(DATA_PATH, "validation_sets", "*", f"colors_gcn.pt",)
-    )
-
-    colors_rf_all = glob(
-        os.path.join(DATA_PATH, "validation_sets", "*", "colors_rf.pt")
-    )
-
-    for idx_th in range(N_THRESHOLDS):
-        print(f"Computing threshold {idx_th + 1}/{N_THRESHOLDS}...")
-
-        scores_rf, idx_valid_rf = method_comparison(colors_rf_all, idx_th, method="rf")
+    for bt in BLOCK_TYPES + ["rf"]:
+        colors_method = glob(os.path.join(DATA_PATH, "validation_sets", "*", f"colors_{bt}.pt",))
 
         f, axs = plt.subplots(nrows=1, ncols=4)
 
-        for idx_method, method in enumerate(AVAIL_METHODS):
-            scores_method, idx_valid_method = method_comparison(
-                colors_method, idx_th, method=method
-            )
-            axs[idx_method].hist(scores_method, bins=50)
-            axs[idx_method].axvline(
-                np.median(scores_method), linestyle="--", color="black"
-            )
-            axs[idx_method].set_xlabel(method.__name__)
+        for idx_th in range(N_THRESHOLDS):
+            if bt not in BLOCK_TYPES:
+                scores_method, idx_valid_method = method_comparison(
+                    colors_method, idx_th, method="rf"
+                )
 
-        axs[3].hist(scores_rf, bins=50)
-        axs[3].axvline(np.median(scores_rf), linestyle="--", color="black")
-        axs[3].set_xlabel("Sheridan")
+                axs[0].hist(scores_method, bins=50)
+                axs[0].axvline(
+                    np.median(scores_method), linestyle="--", color="black"
+                )
+                axs[0].set_xlabel("Diff.")
 
-        plt.suptitle("Average agreement between attributions and coloring")
-        plt.savefig(
-            os.path.join(FIG_PATH, "color_agreement_all_{}.png".format(idx_th)),
-            dpi=300,
-        )
-        plt.close()
+            for idx_method, method in enumerate(AVAIL_METHODS):
+                scores_method, idx_valid_method = method_comparison(
+                    colors_method, idx_th, method=method
+                )
+
+                axs[idx_method + 1].hist(scores_method, bins=50)
+                axs[idx_method + 1].axvline(
+                    np.median(scores_method), linestyle="--", color="black"
+                )
+                axs[idx_method + 1].set_xlabel(method.__name__)
+
+
+            plt.suptitle("Average agreement between attributions and coloring")
+            plt.savefig(
+                os.path.join(FIG_PATH, f"color_agreement_{bt}_{idx_th}.png"),
+                dpi=300,
+            )
+            plt.close()
 
 
     # TODO: these plots need to be redone

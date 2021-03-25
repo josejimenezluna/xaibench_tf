@@ -16,9 +16,4 @@ MODELS_RF_PATH = os.path.join(os.path.dirname(os.path.dirname(__file__)), "model
 LOG_PATH = os.path.join(os.path.dirname(os.path.dirname(__file__)), "logs")
 FIG_PATH = os.path.join(os.path.dirname(os.path.dirname(__file__)), "figures")
 
-
-MODEL_PARAM = {
-    "node_in_feats": 49,
-    "edge_in_feats": 10,
-    "n_tasks": 1,
-}
+BLOCK_TYPES = ["gcn", "mpnn", "gat"]
