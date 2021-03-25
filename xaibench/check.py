@@ -97,7 +97,7 @@ if __name__ == "__main__":
             os.path.join(DATA_PATH, "validation_sets", "*", f"colors_{bt}.pt",)
         )
 
-        f, axs = plt.subplots(nrows=1, ncols=4)
+        f, axs = plt.subplots(nrows=1, ncols=len(AVAIL_METHODS) + 1)
 
         for idx_th in range(N_THRESHOLDS):
             if bt not in BLOCK_TYPES:
