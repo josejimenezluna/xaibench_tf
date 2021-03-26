@@ -16,10 +16,10 @@ from graph_nets.graphs import GraphsTuple
 
 from xaibench.utils import DATA_PATH, MODELS_PATH
 
-physical_devices = tf.config.list_physical_devices("GPU")
-tf.config.experimental.set_memory_growth(physical_devices[0], True)
+# physical_devices = tf.config.list_physical_devices("GPU")
+# tf.config.experimental.set_memory_growth(physical_devices[0], True)
 
-AVAIL_METHODS = [IntegratedGradients, GradInput, CAM, GradCAM]
+AVAIL_METHODS = [IntegratedGradients, GradInput, CAM, GradCAM, AttentionWeights]
 
 
 def ig_ref(g):
@@ -55,8 +55,9 @@ def color_pairs(pair_f, block_type="gcn"):
         smiles_to_graphs_tuple(df["smiles_j"], tensorizer),
     )
 
+    colors = {}
+
     for col_method in AVAIL_METHODS:
-        colors = {}
         extra_kwargs = {}
 
         if col_method == AttentionWeights and block_type != "gat":
