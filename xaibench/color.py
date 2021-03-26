@@ -39,11 +39,11 @@ def ig_ref(g):
 
 
 def get_batch_indices(n: int, batch_size: int):
-    n_batches = n // batch_size
     indices = tf.range(n)
     if n < batch_size:
         indices = tf.reshape(indices, (1, n))
         return indices
+    n_batches = n // batch_size
     indices = indices[: n_batches * batch_size]
     indices = tf.reshape(indices, (n_batches, batch_size))
     return indices
@@ -51,7 +51,6 @@ def get_batch_indices(n: int, batch_size: int):
 
 def color_pairs(pair_f, batch_size=16, block_type="gcn"):
     id_ = os.path.basename(os.path.dirname(pair_f))
-
     colors_pt = os.path.join(os.path.dirname(pair_f), "colors.pt")
 
     if not os.path.exists(colors_pt):
@@ -83,17 +82,17 @@ def color_pairs(pair_f, batch_size=16, block_type="gcn"):
             extra_kwargs["reference_fn"] = ig_ref
 
         n = get_num_graphs(g_i)
-        indices = get_batch_indices(n, batch_size)
-        for idx_i, idx_j in zip(indices, indices):
+        indices = get_batch_indices(n, int(batch_size / 2))
+
+        for idx in indices:
             with tf.device("/GPU:0"):
-                b_i, b_j = get_graphs_tf(g_i, idx_i), get_graphs_tf(g_j, idx_j)
+                b_i, b_j = get_graphs_tf(g_i, idx), get_graphs_tf(g_j, idx)
                 c_i = col_method(**extra_kwargs).attribute(b_i, model)
                 c_j = col_method(**extra_kwargs).attribute(b_j, model)
 
             col_i.extend(c_i)
             col_j.extend(c_j)
 
-        assert len(col_i) == len(col_j)
         colors[col_method.__name__] = [(c_i, c_j) for c_i, c_j in zip(col_i, col_j)]
     return colors
 
