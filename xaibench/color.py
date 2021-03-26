@@ -10,7 +10,7 @@ from graph_attribution.graphnet_techniques import (
     CAM,
     GradCAM,
     GradInput,
-    AttentionWeights
+    AttentionWeights,
 )
 from graph_nets.graphs import GraphsTuple
 
@@ -45,8 +45,7 @@ def color_pairs(pair_f, block_type="gcn"):
     if not os.path.exists(colors_pt):
         raise ValueError(f"No colors available for id {id_}. Skipping...")
 
-    with open(os.path.join(MODELS_PATH, f"{block_type}_{id_}.pt"), "rb") as handle:
-        model = dill.load(handle)
+
 
     df = pd.read_csv(pair_f)
     tensorizer = MolTensorizer()
@@ -56,23 +55,26 @@ def color_pairs(pair_f, block_type="gcn"):
     )
 
     colors = {}
+    with tf.device("/GPU:0"):
+        with open(os.path.join(MODELS_PATH, f"{block_type}_{id_}.pt"), "rb") as handle:
+            model = dill.load(handle)
 
-    for col_method in AVAIL_METHODS:
-        extra_kwargs = {}
+        for col_method in AVAIL_METHODS:
+            extra_kwargs = {}
 
-        if col_method == AttentionWeights and block_type != "gat":
-            continue
+            if col_method == AttentionWeights and block_type != "gat":
+                continue
 
-        if col_method == IntegratedGradients:
-            extra_kwargs["num_steps"] = 500
-            extra_kwargs["reference_fn"] = ig_ref
+            if col_method == IntegratedGradients:
+                extra_kwargs["num_steps"] = 500
+                extra_kwargs["reference_fn"] = ig_ref
 
-        col_i, col_j = (
-            col_method(**extra_kwargs).attribute(g_i, model),
-            col_method(**extra_kwargs).attribute(g_j, model),
-        )
-        assert len(col_i) == len(col_j)
-        colors[col_method.__name__] = [(c_i, c_j) for c_i, c_j in zip(col_i, col_j)]
+            col_i, col_j = (
+                col_method(**extra_kwargs).attribute(g_i, model),
+                col_method(**extra_kwargs).attribute(g_j, model),
+            )
+            assert len(col_i) == len(col_j)
+            colors[col_method.__name__] = [(c_i, c_j) for c_i, c_j in zip(col_i, col_j)]
     return colors
 
 
