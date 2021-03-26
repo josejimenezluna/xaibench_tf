@@ -6,14 +6,15 @@ import pandas as pd
 import tensorflow as tf
 from graph_attribution.featurization import MolTensorizer, smiles_to_graphs_tuple
 from graph_attribution.graphnet_techniques import (
-    IntegratedGradients,
     CAM,
+    AttentionWeights,
     GradCAM,
     GradInput,
-    AttentionWeights,
+    IntegratedGradients,
 )
+from graph_attribution.graphs import get_graphs_tf, get_num_graphs
 from graph_nets.graphs import GraphsTuple
-from graph_attribution.graphs import get_num_graphs, get_graphs_tf
+from tqdm import tqdm
 
 from xaibench.utils import DATA_PATH, MODELS_PATH
 
@@ -84,7 +85,7 @@ def color_pairs(pair_f, batch_size=16, block_type="gcn"):
         n = get_num_graphs(g_i)
         indices = get_batch_indices(n, int(batch_size / 2))
 
-        for idx in indices:
+        for idx in tqdm(indices):
             with tf.device("/GPU:0"):
                 b_i, b_j = get_graphs_tf(g_i, idx), get_graphs_tf(g_j, idx)
                 c_i = col_method(**extra_kwargs).attribute(b_i, model)
