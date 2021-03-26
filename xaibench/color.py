@@ -45,17 +45,16 @@ def color_pairs(pair_f, block_type="gcn"):
     if not os.path.exists(colors_pt):
         raise ValueError(f"No colors available for id {id_}. Skipping...")
 
-
-
     df = pd.read_csv(pair_f)
     tensorizer = MolTensorizer()
-    g_i, g_j = (
-        smiles_to_graphs_tuple(df["smiles_i"], tensorizer),
-        smiles_to_graphs_tuple(df["smiles_j"], tensorizer),
-    )
 
-    colors = {}
     with tf.device("/GPU:0"):
+        g_i, g_j = (
+            smiles_to_graphs_tuple(df["smiles_i"], tensorizer),
+            smiles_to_graphs_tuple(df["smiles_j"], tensorizer),
+        )
+
+        colors = {}
         with open(os.path.join(MODELS_PATH, f"{block_type}_{id_}.pt"), "rb") as handle:
             model = dill.load(handle)
 
