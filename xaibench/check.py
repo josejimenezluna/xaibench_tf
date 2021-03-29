@@ -61,6 +61,7 @@ def method_comparison(all_colors_method, idx_threshold, method, assign_bonds=Fal
 
         if method in AVAIL_METHODS:
             if assign_bonds:
+                assert len(colors_method[method.__name__]) == len(mols)
                 colors_method = [
                     (assign_bonds(cm[0], mol[0]), assign_bonds(cm[1], mol[1]))
                     for cm, mol in zip(colors_method[method.__name__], mols)
@@ -70,6 +71,8 @@ def method_comparison(all_colors_method, idx_threshold, method, assign_bonds=Fal
                     (cm[0].nodes.numpy(), cm[1].nodes.numpy())
                     for cm in colors_method[method.__name__]
                 ]
+
+        assert len(colors) == len(colors_method)
 
         if sum(1 for _ in filter(None.__ne__, colors)) > 0:
             scores = []
