@@ -86,13 +86,21 @@ def method_comparison(all_colors_method, idx_threshold, method, assign_bonds=Fal
             if scores.size > 0:
                 avg_scores.append(scores.mean())
                 idx_valid.append(idx)
-    return np.array(avg_scores), set(idx_valid)
+    return np.array(avg_scores), idx_valid
 
 
 if __name__ == "__main__":
     os.makedirs(FIG_PATH, exist_ok=True)
 
-    for bt in BLOCK_TYPES + ["rf"]:
+    colors_rf = glob(os.path.join(DATA_PATH, "validation_sets", "*", "colors_rf.pt"))
+    scores_rf = []
+
+    for idx_th in range(N_THRESHOLDS):
+        srf, _ = method_comparison(colors_rf, idx_th, method="rf")
+        scores_rf.append(srf)
+
+
+    for bt in BLOCK_TYPES:
         colors_method = glob(
             os.path.join(DATA_PATH, "validation_sets", "*", f"colors_{bt}.pt",)
         )
@@ -100,18 +108,13 @@ if __name__ == "__main__":
         f, axs = plt.subplots(nrows=1, ncols=ncols)
 
         for idx_th in range(N_THRESHOLDS):
-            if bt not in BLOCK_TYPES:
-                scores_method, idx_valid_method = method_comparison(
-                    colors_method, idx_th, method="rf"
-                )
-
-                axs[0].hist(scores_method, bins=50)
-                axs[0].axvline(np.median(scores_method), linestyle="--", color="black")
-                axs[0].set_xlabel("Diff.")
+            axs[0].hist(scores_rf[idx_th], bins=50)
+            axs[0].axvline(np.median(scores_rf[idx_th]), linestyle="--", color="black")
+            axs[0].set_xlabel("Diff.")
 
             for idx_method, method in enumerate(AVAIL_METHODS):
-                scores_method, idx_valid_method = method_comparison(
-                    colors_method, idx_th, method=method
+                scores_method, _ = method_comparison(
+                    colors_method, idx_th, method=method, assign_bonds=True
                 )
 
                 axs[idx_method + 1].hist(scores_method, bins=50)
