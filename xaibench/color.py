@@ -18,8 +18,8 @@ from tqdm import tqdm
 
 from xaibench.utils import DATA_PATH, MODELS_PATH
 
-# physical_devices = tf.config.list_physical_devices("GPU")
-# tf.config.experimental.set_memory_growth(physical_devices[0], True)
+physical_devices = tf.config.list_physical_devices("GPU")
+tf.config.experimental.set_memory_growth(physical_devices[0], True)
 
 AVAIL_METHODS = [IntegratedGradients, GradInput, CAM, GradCAM, AttentionWeights]
 
