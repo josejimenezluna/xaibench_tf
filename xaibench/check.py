@@ -93,44 +93,75 @@ def method_comparison(all_colors_method, idx_threshold, method, assign_bonds=Fal
 
 
 if __name__ == "__main__":
-    os.makedirs(FIG_PATH, exist_ok=True)
+    # Precompute results
+    scores = {}
 
     colors_rf = glob(os.path.join(DATA_PATH, "validation_sets", "*", "colors_rf.pt"))
-    scores_rf = []
+
+    scores["rf"] = {"ECFP4": []}
 
     for idx_th in range(N_THRESHOLDS):
         srf, _ = method_comparison(colors_rf, idx_th, method="rf")
-        scores_rf.append(srf)
+        scores["rf"]["ECFP4"].append(srf)
 
 
     for bt in BLOCK_TYPES:
         colors_method = glob(
             os.path.join(DATA_PATH, "validation_sets", "*", f"colors_{bt}.pt",)
         )
-        ncols = len(AVAIL_METHODS) + 1 if bt == "gat" else len(AVAIL_METHODS)
-        f, axs = plt.subplots(nrows=1, ncols=ncols)
+        scores[bt] = {}
 
         for idx_th in range(N_THRESHOLDS):
-            axs[0].hist(scores_rf[idx_th], bins=50)
-            axs[0].axvline(np.median(scores_rf[idx_th]), linestyle="--", color="black")
-            axs[0].set_xlabel("Diff.")
-
             for idx_method, method in enumerate(AVAIL_METHODS):
                 scores_method, _ = method_comparison(
                     colors_method, idx_th, method=method, assign_bonds=True
                 )
+                scores[bt].setdefault(method.__name__, []).append(scores_method)
 
-                axs[idx_method + 1].hist(scores_method, bins=50)
+    # Plots
+
+    # Histograms per idx_th
+
+    os.makedirs(FIG_PATH, exist_ok=True)
+    ncols = len(AVAIL_METHODS) + 1 if bt == "gat" else len(AVAIL_METHODS)
+
+    for bt in BLOCK_TYPES:
+        f, axs = plt.subplots(nrows=1, ncols=ncols, figsize=(12, 6))
+        for idx_th in range(N_THRESHOLDS):
+            axs[0].hist(scores["rf"]["ECFP4"][idx_th], bins=50)
+            axs[0].axvline(np.median(scores["rf"]["ECFP4"][idx_th]), linestyle="--", color="black")
+            axs[0].set_xlabel("Diff.")
+            for idx_method, method in enumerate(AVAIL_METHODS):
+                s = scores[bt][method.__name__][idx_th]
+                axs[idx_method + 1].hist(s, bins=50)
                 axs[idx_method + 1].axvline(
-                    np.median(scores_method), linestyle="--", color="black"
+                    np.median(s), linestyle="--", color="black"
                 )
                 axs[idx_method + 1].set_xlabel(method.__name__)
 
-            plt.suptitle("Average agreement between attributions and coloring")
-            plt.savefig(
-                os.path.join(FIG_PATH, f"color_agreement_{bt}_{idx_th}.png"), dpi=300,
-            )
-            plt.close()
+        plt.suptitle("Average agreement between attributions and coloring")
+        plt.show()
+        # plt.savefig(
+        #     os.path.join(FIG_PATH, f"color_agreement_{bt}_{idx_th}.png"), dpi=300,
+        # )
+        plt.close()
+
+    
+    f, ax = plt.subplots()
+
+    ax.plot(N_THRESHOLDS, [np.median(scores["rf"]["ECFP"][idx_th]) for idx_th in range(N_THRESHOLDS)])
+    for bt in BLOCK_TYPES:
+        for method in AVAIL_METHODS:
+            medians = [np.median(scores[bt][method.__name__][idx_th] for idx_th in range(N_THRESHOLDS))]
+            ax.plot(N_THRESHOLDS, medians, label=f"{bt}_{method.__name__}")
+        ax.grid(True)
+    ax.set_xlabel("MCS common atoms (0-1)")
+    ax.set_ylabel("Color agreement")
+    plt.legend()
+    plt.show()
+    plt.close()
+
+
 
     # TODO: these plots need to be redone
 
