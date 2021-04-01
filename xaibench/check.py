@@ -37,7 +37,7 @@ def assign_bonds(cm, mol):
     return atom_imp
 
 
-def method_comparison(all_colors_method, idx_threshold, method, assign_bonds=False):
+def method_comparison(all_colors_method, idx_th, method, assign_bonds=False):
     avg_scores = []
     idx_valid = []
 
@@ -54,7 +54,7 @@ def method_comparison(all_colors_method, idx_threshold, method, assign_bonds=Fal
                 for mi, mj in zip(pair_df["smiles_i"], pair_df["smiles_j"])
             ]
 
-        colors = [col[idx_threshold] for col in colors]
+        colors = [col[idx_th] for col in colors]
 
         with open(color_method_f, "rb") as handle:
             colors_method = dill.load(handle)
@@ -94,10 +94,9 @@ def method_comparison(all_colors_method, idx_threshold, method, assign_bonds=Fal
 
 if __name__ == "__main__":
     # Precompute results
-    scores = {}
-
     colors_rf = glob(os.path.join(DATA_PATH, "validation_sets", "*", "colors_rf.pt"))
 
+    scores = {}
     scores["rf"] = {"ECFP4": []}
 
     for idx_th in range(N_THRESHOLDS):
@@ -114,7 +113,7 @@ if __name__ == "__main__":
         for idx_th in range(N_THRESHOLDS):
             for idx_method, method in enumerate(AVAIL_METHODS):
                 scores_method, _ = method_comparison(
-                    colors_method, idx_th, method=method, assign_bonds=True
+                    colors_method, idx_th, method=method, assign_bonds=False
                 )
                 scores[bt].setdefault(method.__name__, []).append(scores_method)
 
@@ -146,6 +145,7 @@ if __name__ == "__main__":
         # )
         plt.close()
 
+    # median plot
     
     f, ax = plt.subplots()
 

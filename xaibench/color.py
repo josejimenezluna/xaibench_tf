@@ -18,8 +18,8 @@ from tqdm import tqdm
 
 from xaibench.utils import DATA_PATH, MODELS_PATH
 
-physical_devices = tf.config.list_physical_devices("GPU")
-tf.config.experimental.set_memory_growth(physical_devices[0], True)
+# physical_devices = tf.config.list_physical_devices("GPU")
+# tf.config.experimental.set_memory_growth(physical_devices[0], True)
 
 AVAIL_METHODS = [IntegratedGradients, GradInput, CAM, GradCAM, AttentionWeights]
 
@@ -44,10 +44,14 @@ def get_batch_indices(n: int, batch_size: int):
     if n < batch_size:
         indices = tf.reshape(indices, (1, n))
         return indices
-    n_batches = n // batch_size
-    indices = indices[: n_batches * batch_size]
-    indices = tf.reshape(indices, (n_batches, batch_size))
-    return indices
+    if n % batch_size == 0:
+        n_batches = n // batch_size
+    else:
+        n_batches = n // batch_size + 1
+    return [
+        indices[idx * batch_size : batch_size * (idx + 1)]
+        for idx in range(n_batches)
+    ]
 
 
 def color_pairs(pair_f, batch_size=16, block_type="gcn"):
