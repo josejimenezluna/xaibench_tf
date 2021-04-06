@@ -49,8 +49,7 @@ def get_batch_indices(n: int, batch_size: int):
     else:
         n_batches = n // batch_size + 1
     return [
-        indices[idx * batch_size : batch_size * (idx + 1)]
-        for idx in range(n_batches)
+        indices[idx * batch_size : batch_size * (idx + 1)] for idx in range(n_batches)
     ]
 
 

@@ -7,6 +7,7 @@ import numpy as np
 import pandas as pd
 from tqdm import tqdm
 from rdkit.Chem import MolFromSmiles
+from graph_attribution.graphnet_techniques import AttentionWeights
 
 from xaibench.color import AVAIL_METHODS
 from xaibench.determine_col import MIN_PER_COMMON_ATOMS
@@ -105,6 +106,7 @@ if __name__ == "__main__":
 
 
     for bt in BLOCK_TYPES:
+        print(f"Now loading block type {bt}...")
         colors_method = glob(
             os.path.join(DATA_PATH, "validation_sets", "*", f"colors_{bt}.pt",)
         )
@@ -112,6 +114,8 @@ if __name__ == "__main__":
 
         for idx_th in range(N_THRESHOLDS):
             for idx_method, method in enumerate(AVAIL_METHODS):
+                if bt != "gat" and method == AttentionWeights:
+                    continue
                 scores_method, _ = method_comparison(
                     colors_method, idx_th, method=method, assign_bonds=False
                 )
