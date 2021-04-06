@@ -7,7 +7,6 @@ import numpy as np
 import pandas as pd
 from tqdm import tqdm
 from rdkit.Chem import MolFromSmiles
-from graph_attribution.graphnet_techniques import AttentionWeights
 
 from xaibench.color import AVAIL_METHODS
 from xaibench.determine_col import MIN_PER_COMMON_ATOMS
@@ -38,11 +37,11 @@ def assign_bonds(cm, mol):
     return atom_imp
 
 
-def method_comparison(all_colors_method, idx_th, method, assign_bonds=False):
-    avg_scores = []
-    idx_valid = []
+def method_comparison(colors_path, avail_methods=None, assign_bonds=False):
+    avg_scores = {}
+    idx_valid = {}
 
-    for idx, color_method_f in enumerate(tqdm(all_colors_method)):
+    for idx, color_method_f in enumerate(tqdm(colors_path)):
         dirname = os.path.dirname(color_method_f)
 
         with open(os.path.join(dirname, "colors.pt"), "rb") as handle:
@@ -55,42 +54,55 @@ def method_comparison(all_colors_method, idx_th, method, assign_bonds=False):
                 for mi, mj in zip(pair_df["smiles_i"], pair_df["smiles_j"])
             ]
 
-        colors = [col[idx_th] for col in colors]  # TODO: don't redo this for every idx_th
+        with open(color_method_f, "rb") as handle:
+            manual_colors = dill.load(handle)
 
-        with open(color_method_f, "rb") as handle:  # TODO: same for the method, this is stupid coding
-            colors_method = dill.load(handle)
-
-        if method in AVAIL_METHODS:
-            if assign_bonds:
-                assert len(colors_method[method.__name__]) == len(mols)
-                colors_method = [
-                    (assign_bonds(cm[0], mol[0]), assign_bonds(cm[1], mol[1]))
-                    for cm, mol in zip(colors_method[method.__name__], mols)
-                ]
+        for method in avail_methods if avail_methods is not None else ["rf"]:
+            if avail_methods is not None:
+                method_name = method.__name__
+                if assign_bonds:
+                    colors_method = [
+                        (assign_bonds(cm[0], mol[0]), assign_bonds(cm[1], mol[1]))
+                        for cm, mol in zip(manual_colors[method.__name__], mols)
+                    ]
+                else:
+                    colors_method = [
+                        (cm[0].nodes.numpy(), cm[1].nodes.numpy())
+                        for cm in manual_colors[method.__name__]
+                    ]
             else:
-                colors_method = [
-                    (cm[0].nodes.numpy(), cm[1].nodes.numpy())
-                    for cm in colors_method[method.__name__]
-                ]
+                colors_method = manual_colors
+                method_name = method
 
-        assert len(colors) == len(colors_method)
+            for idx_th in range(N_THRESHOLDS):
+                colors_th = [col[idx_th] for col in colors]
 
-        if sum(1 for _ in filter(None.__ne__, colors)) > 0:
-            scores = []
-            for color_pair_true, color_pair_pred in zip(colors, colors_method):
-                if color_pair_true is not None:
-                    ag_i = color_agreement(color_pair_true[0], color_pair_pred[0])
-                    scores.append(ag_i)
-                    ag_j = color_agreement(color_pair_true[1], color_pair_pred[1])
-                    scores.append(ag_j)
+                assert len(colors) == len(colors_method)
 
-            scores = np.array(scores)
-            scores = scores[scores >= 0.0]
+                if sum(1 for _ in filter(None.__ne__, colors)) > 0:
+                    scores = []
+                    for color_pair_true, color_pair_pred in zip(colors_th, colors_method):
+                        if color_pair_true is not None:
+                            ag_i = color_agreement(
+                                color_pair_true[0], color_pair_pred[0]
+                            )
+                            scores.append(ag_i)
+                            ag_j = color_agreement(
+                                color_pair_true[1], color_pair_pred[1]
+                            )
+                            scores.append(ag_j)
 
-            if scores.size > 0:
-                avg_scores.append(scores.mean())
-                idx_valid.append(idx)
-    return np.array(avg_scores), idx_valid
+                    scores = np.array(scores)
+                    scores = scores[scores >= 0.0]
+
+                    if scores.size > 0:
+                        avg_scores.setdefault(
+                            method_name, [[] for _ in range(N_THRESHOLDS)]
+                        )[idx_th].append(scores.mean())
+                        idx_valid.setdefault(
+                            method_name, [[] for _ in range(N_THRESHOLDS)]
+                        )[idx_th].append(idx)
+    return avg_scores, idx_valid
 
 
 if __name__ == "__main__":
@@ -98,28 +110,22 @@ if __name__ == "__main__":
     colors_rf = glob(os.path.join(DATA_PATH, "validation_sets", "*", "colors_rf.pt"))
 
     scores = {}
-    scores["rf"] = {"ECFP4": []}
+    scores["rf"] = {}
 
-    for idx_th in range(N_THRESHOLDS):
-        srf, _ = method_comparison(colors_rf, idx_th, method="rf")
-        scores["rf"]["ECFP4"].append(srf)
-
+    scores["rf"], _ = method_comparison(colors_rf)
 
     for bt in BLOCK_TYPES:
         print(f"Now loading block type {bt}...")
+        avail_methods = (
+            AVAIL_METHODS if bt == "gat" else AVAIL_METHODS[:-1]
+        )  # TODO: rewrite this more elegantly
         colors_method = glob(
             os.path.join(DATA_PATH, "validation_sets", "*", f"colors_{bt}.pt",)
         )
-        scores[bt] = {}
 
-        for idx_th in range(N_THRESHOLDS):
-            for idx_method, method in enumerate(AVAIL_METHODS):
-                if bt != "gat" and method == AttentionWeights:
-                    continue
-                scores_method, _ = method_comparison(
-                    colors_method, idx_th, method=method, assign_bonds=False
-                )
-                scores[bt].setdefault(method.__name__, []).append(scores_method)
+        scores[bt], _ = method_comparison(
+            colors_method, avail_methods, assign_bonds=False
+        )
 
     # Plots
 
@@ -131,15 +137,15 @@ if __name__ == "__main__":
     for bt in BLOCK_TYPES:
         f, axs = plt.subplots(nrows=1, ncols=ncols, figsize=(12, 6))
         for idx_th in range(N_THRESHOLDS):
-            axs[0].hist(scores["rf"]["ECFP4"][idx_th], bins=50)
-            axs[0].axvline(np.median(scores["rf"]["ECFP4"][idx_th]), linestyle="--", color="black")
+            axs[0].hist(scores["rf"]["rf"][idx_th], bins=50)
+            axs[0].axvline(
+                np.median(scores["rf"]["rf"][idx_th]), linestyle="--", color="black"
+            )
             axs[0].set_xlabel("Diff.")
             for idx_method, method in enumerate(AVAIL_METHODS):
                 s = scores[bt][method.__name__][idx_th]
                 axs[idx_method + 1].hist(s, bins=50)
-                axs[idx_method + 1].axvline(
-                    np.median(s), linestyle="--", color="black"
-                )
+                axs[idx_method + 1].axvline(np.median(s), linestyle="--", color="black")
                 axs[idx_method + 1].set_xlabel(method.__name__)
 
         plt.suptitle("Average agreement between attributions and coloring")
@@ -150,13 +156,21 @@ if __name__ == "__main__":
         plt.close()
 
     # median plot
-    
+
     f, ax = plt.subplots()
 
-    ax.plot(N_THRESHOLDS, [np.median(scores["rf"]["ECFP"][idx_th]) for idx_th in range(N_THRESHOLDS)])
+    ax.plot(
+        N_THRESHOLDS,
+        [np.median(scores["rf"]["ECFP"][idx_th]) for idx_th in range(N_THRESHOLDS)],
+    )
     for bt in BLOCK_TYPES:
         for method in AVAIL_METHODS:
-            medians = [np.median(scores[bt][method.__name__][idx_th] for idx_th in range(N_THRESHOLDS))]
+            medians = [
+                np.median(
+                    scores[bt][method.__name__][idx_th]
+                    for idx_th in range(N_THRESHOLDS)
+                )
+            ]
             ax.plot(N_THRESHOLDS, medians, label=f"{bt}_{method.__name__}")
         ax.grid(True)
     ax.set_xlabel("MCS common atoms (0-1)")
@@ -164,8 +178,6 @@ if __name__ == "__main__":
     plt.legend()
     plt.show()
     plt.close()
-
-
 
     # TODO: these plots need to be redone
 
