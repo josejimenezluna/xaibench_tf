@@ -55,9 +55,9 @@ def method_comparison(all_colors_method, idx_th, method, assign_bonds=False):
                 for mi, mj in zip(pair_df["smiles_i"], pair_df["smiles_j"])
             ]
 
-        colors = [col[idx_th] for col in colors]
+        colors = [col[idx_th] for col in colors]  # TODO: don't redo this for every idx_th
 
-        with open(color_method_f, "rb") as handle:
+        with open(color_method_f, "rb") as handle:  # TODO: same for the method, this is stupid coding
             colors_method = dill.load(handle)
 
         if method in AVAIL_METHODS:
