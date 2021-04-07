@@ -132,28 +132,31 @@ if __name__ == "__main__":
     # Histograms per idx_th
 
     os.makedirs(FIG_PATH, exist_ok=True)
-    ncols = len(AVAIL_METHODS) + 1 if bt == "gat" else len(AVAIL_METHODS)
 
     for bt in BLOCK_TYPES:
-        f, axs = plt.subplots(nrows=1, ncols=ncols, figsize=(12, 6))
+        ncols = len(AVAIL_METHODS) + 1 if bt == "gat" else len(AVAIL_METHODS)
+
+        avail_methods = (
+            AVAIL_METHODS if bt == "gat" else AVAIL_METHODS[:-1]
+        )  # TODO: rewrite this more elegantly
         for idx_th in range(N_THRESHOLDS):
+            f, axs = plt.subplots(nrows=1, ncols=ncols, figsize=(12, 6))
             axs[0].hist(scores["rf"]["rf"][idx_th], bins=50)
             axs[0].axvline(
                 np.median(scores["rf"]["rf"][idx_th]), linestyle="--", color="black"
             )
             axs[0].set_xlabel("Diff.")
-            for idx_method, method in enumerate(AVAIL_METHODS):
+            for idx_method, method in enumerate(avail_methods):
                 s = scores[bt][method.__name__][idx_th]
                 axs[idx_method + 1].hist(s, bins=50)
                 axs[idx_method + 1].axvline(np.median(s), linestyle="--", color="black")
                 axs[idx_method + 1].set_xlabel(method.__name__)
 
-        plt.suptitle("Average agreement between attributions and coloring")
-        plt.show()
-        # plt.savefig(
-        #     os.path.join(FIG_PATH, f"color_agreement_{bt}_{idx_th}.png"), dpi=300,
-        # )
-        plt.close()
+            plt.suptitle(f"Average agreement between attributions and coloring \n Block type: {bt}, MCS Threshold: {MIN_PER_COMMON_ATOMS[idx_th]:.2f}")
+            plt.savefig(
+                os.path.join(FIG_PATH, f"color_agreement_{bt}_{idx_th}.png"), dpi=300,
+            )
+            plt.close()
 
     # median plot
 
@@ -161,10 +164,13 @@ if __name__ == "__main__":
 
     ax.plot(
         N_THRESHOLDS,
-        [np.median(scores["rf"]["ECFP"][idx_th]) for idx_th in range(N_THRESHOLDS)],
+        [np.median(scores["rf"]["rf"][idx_th]) for idx_th in range(N_THRESHOLDS)],
     )
     for bt in BLOCK_TYPES:
-        for method in AVAIL_METHODS:
+        avail_methods = (
+            AVAIL_METHODS if bt == "gat" else AVAIL_METHODS[:-1]
+        ) 
+        for method in avail_methods:
             medians = [
                 np.median(
                     scores[bt][method.__name__][idx_th]
