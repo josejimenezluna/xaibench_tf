@@ -3,6 +3,7 @@ from glob import glob
 
 import dill
 import matplotlib.pyplot as plt
+from matplotlib.font_manager import FontProperties
 import numpy as np
 import pandas as pd
 from tqdm import tqdm
@@ -81,7 +82,9 @@ def method_comparison(colors_path, avail_methods=None, assign_bonds=False):
 
                 if sum(1 for _ in filter(None.__ne__, colors)) > 0:
                     scores = []
-                    for color_pair_true, color_pair_pred in zip(colors_th, colors_method):
+                    for color_pair_true, color_pair_pred in zip(
+                        colors_th, colors_method
+                    ):
                         if color_pair_true is not None:
                             ag_i = color_agreement(
                                 color_pair_true[0], color_pair_pred[0]
@@ -127,8 +130,6 @@ if __name__ == "__main__":
             colors_method, avail_methods, assign_bonds=False
         )
 
-    # Plots
-
     # Histograms per idx_th
 
     os.makedirs(FIG_PATH, exist_ok=True)
@@ -152,7 +153,9 @@ if __name__ == "__main__":
                 axs[idx_method + 1].axvline(np.median(s), linestyle="--", color="black")
                 axs[idx_method + 1].set_xlabel(method.__name__)
 
-            plt.suptitle(f"Average agreement between attributions and coloring \n Block type: {bt}, MCS Threshold: {MIN_PER_COMMON_ATOMS[idx_th]:.2f}")
+            plt.suptitle(
+                f"Average agreement between attributions and coloring \n Block type: {bt} (no bond), MCS Threshold: {MIN_PER_COMMON_ATOMS[idx_th]:.2f}"
+            )
             plt.savefig(
                 os.path.join(FIG_PATH, f"color_agreement_{bt}_{idx_th}.png"), dpi=300,
             )
@@ -160,30 +163,36 @@ if __name__ == "__main__":
 
     # median plot
 
-    f, ax = plt.subplots()
+    f, ax = plt.subplots(figsize=(8, 8))
+    fontP = FontProperties()
+    fontP.set_size("xx-small")
 
     ax.plot(
-        N_THRESHOLDS,
+        MIN_PER_COMMON_ATOMS,
         [np.median(scores["rf"]["rf"][idx_th]) for idx_th in range(N_THRESHOLDS)],
+        label="Diff.",
     )
     for bt in BLOCK_TYPES:
-        avail_methods = (
-            AVAIL_METHODS if bt == "gat" else AVAIL_METHODS[:-1]
-        ) 
+        avail_methods = AVAIL_METHODS if bt == "gat" else AVAIL_METHODS[:-1]
         for method in avail_methods:
             medians = [
-                np.median(
-                    scores[bt][method.__name__][idx_th]
-                    for idx_th in range(N_THRESHOLDS)
-                )
+                np.median(scores[bt][method.__name__][idx_th])
+                for idx_th in range(N_THRESHOLDS)
             ]
-            ax.plot(N_THRESHOLDS, medians, label=f"{bt}_{method.__name__}")
+            ax.plot(MIN_PER_COMMON_ATOMS, medians, label=f"{bt}_{method.__name__}")
         ax.grid(True)
-    ax.set_xlabel("MCS common atoms (0-1)")
+    ax.set_xlabel("MCS percentage common atoms (0-1)")
     ax.set_ylabel("Color agreement")
-    plt.legend()
+    plt.legend(
+        bbox_to_anchor=(1.05, 1),
+        loc="upper left",
+        prop=fontP,
+        fancybox=True,
+        shadow=True,
+    )
+    plt.subplots_adjust(right=0.7)
     plt.show()
-    plt.close()
+    # plt.close()
 
     # TODO: these plots need to be redone
 
