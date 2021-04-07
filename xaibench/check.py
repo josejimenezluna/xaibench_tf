@@ -3,15 +3,15 @@ from glob import glob
 
 import dill
 import matplotlib.pyplot as plt
-from matplotlib.font_manager import FontProperties
 import numpy as np
 import pandas as pd
-from tqdm import tqdm
+from matplotlib.font_manager import FontProperties
 from rdkit.Chem import MolFromSmiles
+from tqdm import tqdm
 
 from xaibench.color import AVAIL_METHODS
 from xaibench.determine_col import MIN_PER_COMMON_ATOMS
-from xaibench.utils import DATA_PATH, FIG_PATH, BLOCK_TYPES
+from xaibench.utils import BLOCK_TYPES, DATA_PATH, FIG_PATH
 
 N_THRESHOLDS = len(MIN_PER_COMMON_ATOMS)
 
@@ -27,10 +27,9 @@ def color_agreement(color_true, color_pred):
     return np.mean(agreement)
 
 
-def assign_bonds(cm, mol):
+def distribute_bonds(cm, mol):
     atom_imp = cm.nodes.numpy()
-    bond_imp = cm.edges.numpy()
-    bond_imp = [b for idx, b in enumerate(bond_imp) if idx % 2 == 0]
+    bond_imp = np.array([b for idx, b in enumerate(cm.edges.numpy()) if idx % 2 == 0])
 
     for bond_idx, bond in enumerate(mol.GetBonds()):
         b_imp = bond_imp[bond_idx] / 2
@@ -65,8 +64,8 @@ def method_comparison(colors_path, avail_methods=None, assign_bonds=False):
                 method_name = method.__name__
                 if assign_bonds:
                     colors_method = [
-                        (assign_bonds(cm[0], mol[0]), assign_bonds(cm[1], mol[1]))
-                        for cm, mol in zip(manual_colors[method_name], mols)
+                        (distribute_bonds(cm_pair[0], mol_pair[0]), distribute_bonds(cm_pair[1], mol_pair[1]))
+                        for cm_pair, mol_pair in zip(manual_colors[method_name], mols)
                     ]
                 else:
                     colors_method = [
