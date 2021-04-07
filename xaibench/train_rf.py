@@ -26,11 +26,11 @@ N_JOBS = int(os.environ["LSB_DJOB_NUMPROC"])
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
     parser.add_argument(
-        "-csv", dest="csv_path", type=str, required=True,
+        "-csv", dest="csv", type=str, required=True,
     )
     args = parser.parse_args()
 
-    df = pd.read_csv(args.csv_path)
+    df = pd.read_csv(args.csv)
     inchis, values = (
         df["standard_inchi"].values,
         df["pchembl_value"].values,
