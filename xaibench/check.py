@@ -117,9 +117,11 @@ if __name__ == "__main__":
     colors_rf = glob(os.path.join(DATA_PATH, "validation_sets", "*", "colors_rf.pt"))
 
     scores = {}
+    idxs = {}
     scores["rf"] = {}
+    idxs["rf"] = {}
 
-    scores["rf"], _ = method_comparison(colors_rf)
+    scores["rf"], idxs["rf"] = method_comparison(colors_rf)
 
     for bt in BLOCK_TYPES:
         print(f"Now loading block type {bt}...")
@@ -130,7 +132,7 @@ if __name__ == "__main__":
             os.path.join(DATA_PATH, "validation_sets", "*", f"colors_{bt}.pt",)
         )
 
-        scores[bt], _ = method_comparison(
+        scores[bt], idxs[bt] = method_comparison(
             colors_method, avail_methods, assign_bonds=True
         )
 
@@ -161,7 +163,8 @@ if __name__ == "__main__":
                 f"Average agreement between attributions and coloring \n Block type: {bt} (bond), MCS Threshold: {MIN_PER_COMMON_ATOMS[idx_th]:.2f}"
             )
             plt.savefig(
-                os.path.join(FIG_PATH, f"color_agreement_{bt}_{idx_th}.png"), dpi=300,
+                os.path.join(FIG_PATH, f"color_agreement_bond_{bt}_{idx_th}.png"),
+                dpi=300,
             )
             plt.close()
 
@@ -176,6 +179,7 @@ if __name__ == "__main__":
         [np.median(scores["rf"]["rf"][idx_th]) for idx_th in range(N_THRESHOLDS)],
         label="Diff.",
     )
+
     for bt in BLOCK_TYPES:
         avail_methods = AVAIL_METHODS if bt == "gat" else AVAIL_METHODS[:-1]
         for method in avail_methods:
@@ -196,103 +200,61 @@ if __name__ == "__main__":
     )
     plt.subplots_adjust(right=0.75)
     plt.savefig(
-        os.path.join(FIG_PATH, f"color_agreement_medians.png"), dpi=300,
+        os.path.join(FIG_PATH, f"color_agreement_medians_bond.png"), dpi=300,
     )
     plt.close()
 
-    # TODO: these plots need to be redone
-
     # similarities
-    # exist_idx_sim_molgrad = []
-    # similarities_molgrad = []
+    similarities_rf = []
+    exists_rf = []
 
-    # for idx, c in enumerate(colors_molgrad_all):
-    #     sim_file = os.path.join(os.path.dirname(c), "similarity.npy")
-    #     if os.path.exists(sim_file):
-    #         similarities_molgrad.append(sim_file)
-    #         exist_idx_sim_molgrad.append(idx)
+    colors_rf = np.array(colors_rf)[idxs["rf"]["rf"][0]]
 
-    # exist_idx_sim_rf = []
-    # similarities_rf = []
+    for idx, color_f in enumerate(colors_rf):
+        sim_file = os.path.join(os.path.dirname(color_f), "similarity.npy")
+        if os.path.exists(sim_file):
+            similarities_rf.append(np.load(sim_file).max())
+            exists_rf.append(idx)
 
-    # for idx, c in enumerate(colors_rf_all):
-    #     sim_file = os.path.join(os.path.dirname(c), "similarity.npy")
-    #     if os.path.exists(sim_file):
-    #         similarities_rf.append(sim_file)
-    #         exist_idx_sim_rf.append(idx)
+    y_rf = np.array(scores["rf"]["rf"][0])[exists_rf]
 
-    # avg_sim_molgrad = []
-    # max_sim_molgrad = []
+    for bt in BLOCK_TYPES:
+        ncols = len(AVAIL_METHODS) + 1 if bt == "gat" else len(AVAIL_METHODS)
 
-    # for sim_fs in similarities_molgrad:
-    #     sim = np.load(sim_fs)
-    #     avg_sim_molgrad.append(sim.mean())
-    #     max_sim_molgrad.append(sim.max())
+        f, axs = plt.subplots(nrows=1, ncols=ncols, figsize=(14, 5))
+        similarities = []
+        exists_idx = []
 
-    # avg_sim_rf = []
-    # max_sim_rf = []
+        avail_methods = AVAIL_METHODS if bt == "gat" else AVAIL_METHODS[:-1]
 
-    # for sim_fs in similarities_rf:
-    #     sim = np.load(sim_fs)
-    #     avg_sim_rf.append(sim.mean())
-    #     max_sim_rf.append(sim.max())
+        colors_bt = np.array(
+            glob(os.path.join(DATA_PATH, "validation_sets", "*", f"colors_{bt}.pt",))
+        )[idxs[bt]["CAM"][0]]
 
-    # f, axs = plt.subplots(nrows=1, ncols=2, figsize=(10, 5))
-    # axs[0].scatter(avg_sim_molgrad, scores_molgrad[exist_idx_sim_molgrad], s=1.5)
-    # axs[1].scatter(avg_sim_rf, scores_rf[exist_idx_sim_rf], s=1.5)
-    # axs[0].set_ylabel("Agreement between attributions and coloring")
-    # axs[0].set_xlabel("Avg. Tanimoto similarities between train and test sets")
-    # axs[0].set_title("IG")
-    # axs[0].text(
-    #     0.3,
-    #     0.9,
-    #     "r={:.3f}".format(
-    #         np.corrcoef(avg_sim_molgrad, scores_molgrad[exist_idx_sim_molgrad])[0, 1]
-    #     ),
-    #     style="italic",
-    #     bbox={"facecolor": "red", "alpha": 0.5},
-    # )
-    # axs[1].set_ylabel("Agreement between attributions and coloring")
-    # axs[1].set_xlabel("Avg. Tanimoto similarities between train and test sets")
-    # axs[1].set_title("Sheridan")
-    # axs[1].text(
-    #     0.3,
-    #     0.9,
-    #     "r={:.3f}".format(np.corrcoef(avg_sim_rf, scores_rf[exist_idx_sim_rf])[0, 1]),
-    #     style="italic",
-    #     bbox={"facecolor": "red", "alpha": 0.5},
-    # )
-    # plt.savefig(os.path.join(FIG_PATH, "avgsimilarityvsagreement.png"))
-    # plt.close()
+        for idx, color_f in enumerate(colors_bt):
+            sim_file = os.path.join(os.path.dirname(color_f), "similarity.npy")
+            if os.path.exists(sim_file):
+                similarities.append(np.load(sim_file).max())
+                exists_idx.append(idx)
 
-    # # max
-    # f, axs = plt.subplots(nrows=1, ncols=2, figsize=(10, 5))
-    # axs[0].scatter(max_sim_molgrad, scores_molgrad[exist_idx_sim_molgrad], s=1.5)
-    # axs[1].scatter(max_sim_rf, scores_rf[exist_idx_sim_rf], s=1.5)
-    # axs[0].set_ylabel("Agreement between attributions and coloring")
-    # axs[0].set_xlabel("Max. Tanimoto similarities between train and test sets")
-    # axs[0].set_title("IG")
-    # axs[0].text(
-    #     0.3,
-    #     0.9,
-    #     "r={:.3f}".format(
-    #         np.corrcoef(max_sim_molgrad, scores_molgrad[exist_idx_sim_molgrad])[0, 1]
-    #     ),
-    #     style="italic",
-    #     bbox={"facecolor": "red", "alpha": 0.5},
-    # )
-    # axs[1].set_ylabel("Agreement between attributions and coloring")
-    # axs[1].set_xlabel("Max. Tanimoto similarities between train and test sets")
-    # axs[1].set_title("Sheridan")
-    # axs[1].text(
-    #     0.3,
-    #     0.9,
-    #     "r={:.3f}".format(np.corrcoef(max_sim_rf, scores_rf[exist_idx_sim_rf])[0, 1]),
-    #     style="italic",
-    #     bbox={"facecolor": "red", "alpha": 0.5},
-    # )
-    # plt.savefig(os.path.join(FIG_PATH, "maxsimilarityvsagreement.png"))
-    # plt.close()
+        axs[0].scatter(similarities_rf, y_rf, s=1.5)
+        axs[0].set_title("Diff.")
+        axs[0].set_ylabel("Color agreement")
+        axs[0].text(
+            0.35, 0.9, "r={:.3f}".format(np.corrcoef(similarities_rf, y_rf)[0, 1])
+        )
+
+        for idx_m, method in enumerate(avail_methods):
+            y = np.array(scores[bt][method.__name__][0])[exists_idx]
+            axs[idx_m + 1].scatter(similarities, y, s=1.5)
+            axs[idx_m + 1].set_title(f"{method.__name__}")
+            axs[idx_m + 1].text(
+                0.35, 0.9, "r={:.3f}".format(np.corrcoef(similarities, y)[0, 1])
+            )
+        f.text(0.5, 0.04, 'Training/test max. Tanimoto similarity', ha='center')
+        plt.savefig(os.path.join(FIG_PATH, f"sim_agreement_{bt}.png"), dpi=300)
+        plt.close()
+
 
     # # performance
     # exist_idx_log_molgrad = []
