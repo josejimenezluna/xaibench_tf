@@ -29,7 +29,8 @@ def color_agreement(color_true, color_pred):
 
 def assign_bonds(cm, mol):
     atom_imp = cm.nodes.numpy()
-    bond_imp = [cm.edges[idx].numpy() for idx in range(len(cm.edges)) if idx % 2 == 0]
+    bond_imp = cm.edges.numpy()
+    bond_imp = [b for idx, b in enumerate(bond_imp) if idx % 2 == 0]
 
     for bond_idx, bond in enumerate(mol.GetBonds()):
         b_imp = bond_imp[bond_idx] / 2
@@ -54,6 +55,7 @@ def method_comparison(colors_path, avail_methods=None, assign_bonds=False):
                 (MolFromSmiles(mi), MolFromSmiles(mj))
                 for mi, mj in zip(pair_df["smiles_i"], pair_df["smiles_j"])
             ]
+            assert len(mols) == len(colors)
 
         with open(color_method_f, "rb") as handle:
             manual_colors = dill.load(handle)
@@ -64,12 +66,12 @@ def method_comparison(colors_path, avail_methods=None, assign_bonds=False):
                 if assign_bonds:
                     colors_method = [
                         (assign_bonds(cm[0], mol[0]), assign_bonds(cm[1], mol[1]))
-                        for cm, mol in zip(manual_colors[method.__name__], mols)
+                        for cm, mol in zip(manual_colors[method_name], mols)
                     ]
                 else:
                     colors_method = [
                         (cm[0].nodes.numpy(), cm[1].nodes.numpy())
-                        for cm in manual_colors[method.__name__]
+                        for cm in manual_colors[method_name]
                     ]
             else:
                 colors_method = manual_colors
@@ -127,7 +129,7 @@ if __name__ == "__main__":
         )
 
         scores[bt], _ = method_comparison(
-            colors_method, avail_methods, assign_bonds=False
+            colors_method, avail_methods, assign_bonds=True
         )
 
     # Histograms per idx_th
@@ -190,9 +192,11 @@ if __name__ == "__main__":
         fancybox=True,
         shadow=True,
     )
-    plt.subplots_adjust(right=0.7)
-    plt.show()
-    # plt.close()
+    plt.subplots_adjust(right=0.75)
+    plt.savefig(
+        os.path.join(FIG_PATH, f"color_agreement_medians.png"), dpi=300,
+    )
+    plt.close()
 
     # TODO: these plots need to be redone
 
