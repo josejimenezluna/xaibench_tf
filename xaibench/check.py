@@ -11,7 +11,7 @@ from tqdm import tqdm
 
 from xaibench.color import AVAIL_METHODS
 from xaibench.determine_col import MIN_PER_COMMON_ATOMS
-from xaibench.utils import BLOCK_TYPES, DATA_PATH, FIG_PATH
+from xaibench.utils import BLOCK_TYPES, DATA_PATH, FIG_PATH, LOG_PATH
 
 N_THRESHOLDS = len(MIN_PER_COMMON_ATOMS)
 
@@ -251,12 +251,43 @@ if __name__ == "__main__":
             axs[idx_m + 1].text(
                 0.35, 0.9, "r={:.3f}".format(np.corrcoef(similarities, y)[0, 1])
             )
-        f.text(0.5, 0.04, 'Training/test max. Tanimoto similarity', ha='center')
+        f.text(0.5, 0.04, "Training/test max. Tanimoto similarity", ha="center")
         plt.savefig(os.path.join(FIG_PATH, f"sim_agreement_{bt}.png"), dpi=300)
         plt.close()
 
+    # performance
+    for bt in BLOCK_TYPES:
+        ncols = len(AVAIL_METHODS) + 1 if bt == "gat" else len(AVAIL_METHODS)
+        f, axs = plt.subplots(nrows=1, ncols=ncols, figsize=(14, 5))
 
-    # # performance
+        losses = []
+
+        colors_bt = np.array(
+            glob(os.path.join(DATA_PATH, "validation_sets", "*", f"colors_{bt}.pt",))
+        )[idxs[bt]["CAM"][0]]
+
+        for color_f in colors_bt:
+            id_ = os.path.basename(os.path.dirname(color_f))
+
+            with open(os.path.join(LOG_PATH, f"{bt}_{id_}.pt"), "rb") as handle:
+                losses.append(dill.load(handle)["train"][-1])
+
+        losses = np.array(losses)
+        for idx_m, method in enumerate(avail_methods):
+            y = np.array(scores[bt][method.__name__][0])
+            axs[idx_m].scatter(losses, y, s=1.5)
+            axs[idx_m].set_title(f"{method.__name__}")
+            axs[idx_m].text(
+                5.0,
+                0.9,
+                "r={:.3f}".format(
+                    np.corrcoef(losses[~np.isnan(losses)], y[~np.isnan(losses)])[0, 1]
+                ),
+            )
+        f.text(0.5, 0.04, "Train MSE", ha="center")
+
+        plt.show()
+
     # exist_idx_log_molgrad = []
     # rs_molgrad = []
 
