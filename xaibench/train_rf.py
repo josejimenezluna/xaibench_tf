@@ -5,7 +5,7 @@ import pickle
 import numpy as np
 import pandas as pd
 from joblib import dump
-from rdkit.Chem import AllChem, DataStructs, MolFromInchi
+from rdkit.Chem import AllChem, DataStructs, MolFromSmiles
 from sklearn.ensemble import RandomForestRegressor
 from sklearn.model_selection import train_test_split
 
@@ -31,16 +31,16 @@ if __name__ == "__main__":
     args = parser.parse_args()
 
     df = pd.read_csv(args.csv)
-    inchis, values = (
-        df["standard_inchi"].values,
+    smiles, values = (
+        df["canonical_smiles"].values,
         df["pchembl_value"].values,
     )
 
     idx_train, idx_test = train_test_split(
-        np.arange(len(inchis)), test_size=0.2, random_state=TEST_SEED
+        np.arange(len(smiles)), test_size=0.2, random_state=TEST_SEED
     )
 
-    fps = np.vstack([featurize_ecfp4(MolFromInchi(inchi)) for inchi in inchis])
+    fps = np.vstack([featurize_ecfp4(MolFromSmiles(sm)) for sm in smiles])
 
     fps_train, fps_test = fps[idx_train, :], fps[idx_test, :]
     values_train, values_test = values[idx_train], values[idx_test]
@@ -56,14 +56,14 @@ if __name__ == "__main__":
     dump(
         rf,
         os.path.join(
-            MODELS_RF_PATH, f"{os.path.basename(os.path.dirname(args.csv_path))}.pt"
+            MODELS_RF_PATH, f"{os.path.basename(os.path.dirname(args.csv))}.pt"
         ),
     )
 
     with open(
         os.path.join(
             LOG_PATH,
-            f"{os.path.basename(os.path.dirname(args.csv_path))}_metrics_rf.pt",
+            f"{os.path.basename(os.path.dirname(args.csv))}_metrics_rf.pt",
         ),
         "wb",
     ) as handle:
