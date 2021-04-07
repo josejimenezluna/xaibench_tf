@@ -64,7 +64,10 @@ def method_comparison(colors_path, avail_methods=None, assign_bonds=False):
                 method_name = method.__name__
                 if assign_bonds:
                     colors_method = [
-                        (distribute_bonds(cm_pair[0], mol_pair[0]), distribute_bonds(cm_pair[1], mol_pair[1]))
+                        (
+                            distribute_bonds(cm_pair[0], mol_pair[0]),
+                            distribute_bonds(cm_pair[1], mol_pair[1]),
+                        )
                         for cm_pair, mol_pair in zip(manual_colors[method_name], mols)
                     ]
                 else:
@@ -155,7 +158,7 @@ if __name__ == "__main__":
                 axs[idx_method + 1].set_xlabel(method.__name__)
 
             plt.suptitle(
-                f"Average agreement between attributions and coloring \n Block type: {bt} (no bond), MCS Threshold: {MIN_PER_COMMON_ATOMS[idx_th]:.2f}"
+                f"Average agreement between attributions and coloring \n Block type: {bt} (bond), MCS Threshold: {MIN_PER_COMMON_ATOMS[idx_th]:.2f}"
             )
             plt.savefig(
                 os.path.join(FIG_PATH, f"color_agreement_{bt}_{idx_th}.png"), dpi=300,
