@@ -252,13 +252,41 @@ if __name__ == "__main__":
                 0.35, 0.9, "r={:.3f}".format(np.corrcoef(similarities, y)[0, 1])
             )
         f.text(0.5, 0.04, "Training/test max. Tanimoto similarity", ha="center")
+        plt.suptitle(f"Block type: {bt}")
         plt.savefig(os.path.join(FIG_PATH, f"sim_agreement_{bt}.png"), dpi=300)
         plt.close()
 
     # performance
+    losses_rf = []
+    exists_rf = []
+
+    for idx, color_f in enumerate(colors_rf):
+        id_ = os.path.basename(os.path.dirname(color_f))
+        metrics_path = os.path.join(LOG_PATH, f"{id_}_metrics_rf.pt")
+        if os.path.exists(metrics_path):
+            with open(metrics_path, "rb") as handle:
+                losses_rf.append(dill.load(handle)[0])
+            exists_rf.append(idx)
+
+    losses_rf = np.array(losses_rf)
+    y_rf = np.array(scores["rf"]["rf"][0])[exists_rf]
+
     for bt in BLOCK_TYPES:
         ncols = len(AVAIL_METHODS) + 1 if bt == "gat" else len(AVAIL_METHODS)
+        avail_methods = AVAIL_METHODS if bt == "gat" else AVAIL_METHODS[:-1]
+
         f, axs = plt.subplots(nrows=1, ncols=ncols, figsize=(14, 5))
+
+        axs[0].scatter(losses_rf, y_rf, s=1.5)
+        axs[0].set_title("Diff.")
+        axs[0].set_ylabel("Color agreement")
+        axs[0].text(
+            1.0,
+            0.9,
+            "r={:.3f}".format(
+                        np.corrcoef(losses_rf[~np.isnan(losses_rf)], y_rf[~np.isnan(losses_rf)])[0, 1]
+                    )
+        )
 
         losses = []
 
@@ -275,9 +303,9 @@ if __name__ == "__main__":
         losses = np.array(losses)
         for idx_m, method in enumerate(avail_methods):
             y = np.array(scores[bt][method.__name__][0])
-            axs[idx_m].scatter(losses, y, s=1.5)
-            axs[idx_m].set_title(f"{method.__name__}")
-            axs[idx_m].text(
+            axs[idx_m + 1].scatter(losses, y, s=1.5)
+            axs[idx_m + 1].set_title(f"{method.__name__}")
+            axs[idx_m + 1].text(
                 5.0,
                 0.9,
                 "r={:.3f}".format(
@@ -285,45 +313,5 @@ if __name__ == "__main__":
                 ),
             )
         f.text(0.5, 0.04, "Train MSE", ha="center")
-
+        plt.suptitle(f"Block type: {bt}")
         plt.show()
-
-    # exist_idx_log_molgrad = []
-    # rs_molgrad = []
-
-    # for idx, c in enumerate(colors_molgrad_all):
-    #     log_file = os.path.join(
-    #         LOG_PATH, f"{os.path.basename(os.path.dirname(c))}_metrics.pt"
-    #     )
-    #     if os.path.exists(log_file):
-    #         with open(log_file, "rb") as handle:
-    #             metrics = pickle.load(handle)
-    #             r = metrics[1][0]
-    #         rs_molgrad.append(r)
-    #         exist_idx_log_molgrad.append(idx)
-
-    # exist_idx_log_rf = []
-    # rs_rf = []
-
-    # for idx, c in enumerate(colors_molgrad_all):
-    #     log_file = os.path.join(
-    #         LOG_PATH, f"{os.path.basename(os.path.dirname(c))}_metrics_rf.pt"
-    #     )
-    #     if os.path.exists(log_file):
-    #         with open(log_file, "rb") as handle:
-    #             metrics = pickle.load(handle)
-    #             r = metrics[1]
-    #         rs_rf.append(r)
-    #         exist_idx_log_rf.append(idx)
-
-    # f, axs = plt.subplots(nrows=1, ncols=2, figsize=(10, 5))
-    # axs[0].scatter(rs_molgrad, scores_molgrad[exist_idx_log_molgrad], s=1.5)
-    # axs[1].scatter(rs_rf, scores_rf[exist_idx_log_rf], s=1.5)
-    # axs[0].set_ylabel("Agreement between attributions and coloring")
-    # axs[0].set_xlabel("Correlation on held-out test set")
-    # axs[0].set_title("IG")
-    # axs[1].set_ylabel("Agreement between attributions and coloring")
-    # axs[1].set_xlabel("Correlation on held-out test set")
-    # axs[1].set_title("Sheridan")
-    # plt.savefig(os.path.join(FIG_PATH, "performancevsagreement.png"))
-    # plt.close()
