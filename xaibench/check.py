@@ -314,4 +314,5 @@ if __name__ == "__main__":
             )
         f.text(0.5, 0.04, "Train MSE", ha="center")
         plt.suptitle(f"Block type: {bt}")
-        plt.show()
+        plt.savefig(os.path.join(FIG_PATH, f"perf_agreement_{bt}.png"), dpi=300)
+        plt.close()
