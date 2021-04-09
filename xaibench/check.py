@@ -5,6 +5,7 @@ import dill
 import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd
+from sklearn.metrics import accuracy_score
 from matplotlib.font_manager import FontProperties
 from rdkit.Chem import MolFromSmiles
 from tqdm import tqdm
@@ -16,15 +17,14 @@ from xaibench.utils import BLOCK_TYPES, DATA_PATH, FIG_PATH, LOG_PATH
 N_THRESHOLDS = len(MIN_PER_COMMON_ATOMS)
 
 
-def color_agreement(color_true, color_pred):
+def color_agreement(color_true, color_pred, metric_f):
     assert len(color_true) == len(color_pred)
     idx_noncommon = [idx for idx, val in color_true.items() if val != 0.0]
     if len(idx_noncommon) == 0:
         return -1.0
     color_true_noncommon = np.array([color_true[idx] for idx in idx_noncommon])
     color_pred_noncommon = np.sign([color_pred[idx] for idx in idx_noncommon])
-    agreement = color_true_noncommon == color_pred_noncommon
-    return np.mean(agreement)
+    return metric_f(color_true_noncommon, color_pred_noncommon)
 
 
 def distribute_bonds(cm, mol):
@@ -91,11 +91,15 @@ def method_comparison(colors_path, avail_methods=None, assign_bonds=False):
                     ):
                         if color_pair_true is not None:
                             ag_i = color_agreement(
-                                color_pair_true[0], color_pair_pred[0]
+                                color_pair_true[0],
+                                color_pair_pred[0],
+                                metric_f=accuracy_score,
                             )
                             scores.append(ag_i)
                             ag_j = color_agreement(
-                                color_pair_true[1], color_pair_pred[1]
+                                color_pair_true[1],
+                                color_pair_pred[1],
+                                metric_f=accuracy_score,
                             )
                             scores.append(ag_j)
 
@@ -282,8 +286,10 @@ if __name__ == "__main__":
             1.0,
             0.9,
             "r={:.3f}".format(
-                        np.corrcoef(losses_rf[~np.isnan(losses_rf)], y_rf[~np.isnan(losses_rf)])[0, 1]
-                    )
+                np.corrcoef(
+                    losses_rf[~np.isnan(losses_rf)], y_rf[~np.isnan(losses_rf)]
+                )[0, 1]
+            ),
         )
 
         losses = []
@@ -310,7 +316,7 @@ if __name__ == "__main__":
                     np.corrcoef(losses[~np.isnan(losses)], y[~np.isnan(losses)])[0, 1]
                 ),
             )
-        f.text(0.5, 0.04, "Train MSE", ha="center")
+        f.text(0.5, 0.04, "Train MSE (bond)", ha="center")
         plt.suptitle(f"Block type: {bt}")
         plt.savefig(os.path.join(FIG_PATH, f"perf_agreement_bond_{bt}.png"), dpi=300)
         plt.close()
