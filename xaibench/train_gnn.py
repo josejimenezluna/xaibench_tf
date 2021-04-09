@@ -18,6 +18,8 @@ from tqdm import tqdm
 from xaibench.utils import LOG_PATH, MODELS_PATH
 
 
+N_EPOCHS = 500
+
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
     parser.add_argument(
@@ -39,7 +41,7 @@ if __name__ == "__main__":
     tensorizer = MolTensorizer()
     graph_data = smiles_to_graphs_tuple(smiles, tensorizer)
 
-    hp = get_hparams({"block_type": args.block_type})
+    hp = get_hparams({"block_type": args.block_type, "epochs": N_EPOCHS})
     task_act = RegresionTaskType().get_nn_activation_fn()
     task_loss = RegresionTaskType().get_nn_loss_fn()
     target_type = TargetType("globals")

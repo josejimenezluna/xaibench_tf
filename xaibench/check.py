@@ -137,7 +137,6 @@ if __name__ == "__main__":
         )
 
     # Histograms per idx_th
-
     os.makedirs(FIG_PATH, exist_ok=True)
 
     for bt in BLOCK_TYPES:
@@ -169,7 +168,6 @@ if __name__ == "__main__":
             plt.close()
 
     # median plot
-
     f, ax = plt.subplots(figsize=(8, 8))
     fontP = FontProperties()
     fontP.set_size("xx-small")
@@ -221,7 +219,7 @@ if __name__ == "__main__":
     for bt in BLOCK_TYPES:
         ncols = len(AVAIL_METHODS) + 1 if bt == "gat" else len(AVAIL_METHODS)
 
-        f, axs = plt.subplots(nrows=1, ncols=ncols, figsize=(14, 5))
+        f, axs = plt.subplots(nrows=1, ncols=ncols, figsize=(12, 4))
         similarities = []
         exists_idx = []
 
@@ -253,7 +251,7 @@ if __name__ == "__main__":
             )
         f.text(0.5, 0.04, "Training/test max. Tanimoto similarity", ha="center")
         plt.suptitle(f"Block type: {bt}")
-        plt.savefig(os.path.join(FIG_PATH, f"sim_agreement_{bt}.png"), dpi=300)
+        plt.savefig(os.path.join(FIG_PATH, f"sim_agreement_bond_{bt}.png"), dpi=300)
         plt.close()
 
     # performance
@@ -275,7 +273,7 @@ if __name__ == "__main__":
         ncols = len(AVAIL_METHODS) + 1 if bt == "gat" else len(AVAIL_METHODS)
         avail_methods = AVAIL_METHODS if bt == "gat" else AVAIL_METHODS[:-1]
 
-        f, axs = plt.subplots(nrows=1, ncols=ncols, figsize=(14, 5))
+        f, axs = plt.subplots(nrows=1, ncols=ncols, figsize=(12, 4))
 
         axs[0].scatter(losses_rf, y_rf, s=1.5)
         axs[0].set_title("Diff.")
@@ -306,7 +304,7 @@ if __name__ == "__main__":
             axs[idx_m + 1].scatter(losses, y, s=1.5)
             axs[idx_m + 1].set_title(f"{method.__name__}")
             axs[idx_m + 1].text(
-                5.0,
+                4.0,
                 0.9,
                 "r={:.3f}".format(
                     np.corrcoef(losses[~np.isnan(losses)], y[~np.isnan(losses)])[0, 1]
@@ -314,5 +312,5 @@ if __name__ == "__main__":
             )
         f.text(0.5, 0.04, "Train MSE", ha="center")
         plt.suptitle(f"Block type: {bt}")
-        plt.savefig(os.path.join(FIG_PATH, f"perf_agreement_{bt}.png"), dpi=300)
+        plt.savefig(os.path.join(FIG_PATH, f"perf_agreement_bond_{bt}.png"), dpi=300)
         plt.close()

@@ -7,7 +7,6 @@ import pandas as pd
 from joblib import dump
 from rdkit.Chem import AllChem, DataStructs, MolFromSmiles
 from sklearn.ensemble import RandomForestRegressor
-from sklearn.model_selection import train_test_split
 
 from xaibench.utils import LOG_PATH, MODELS_RF_PATH
 
@@ -36,21 +35,14 @@ if __name__ == "__main__":
         df["pchembl_value"].values,
     )
 
-    idx_train, idx_test = train_test_split(
-        np.arange(len(smiles)), test_size=0.2, random_state=TEST_SEED
-    )
-
     fps = np.vstack([featurize_ecfp4(MolFromSmiles(sm)) for sm in smiles])
 
-    fps_train, fps_test = fps[idx_train, :], fps[idx_test, :]
-    values_train, values_test = values[idx_train], values[idx_test]
-
     rf = RandomForestRegressor(n_estimators=N_TREES, n_jobs=N_JOBS)
-    rf.fit(fps_train, values_train)
-    yhat_test = rf.predict(fps_test)
+    rf.fit(fps, values)
+    yhat = rf.predict(fps)
 
-    r = np.corrcoef((values_test, yhat_test))[0, 1]
-    rmse = np.sqrt(np.mean((values_test - yhat_test) ** 2))
+    r = np.corrcoef((values, yhat))[0, 1]
+    rmse = np.sqrt(np.mean((values - yhat) ** 2))
 
     os.makedirs(MODELS_RF_PATH, exist_ok=True)
     dump(
