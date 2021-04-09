@@ -1,3 +1,4 @@
+from genericpath import exists
 import os
 from glob import glob
 
@@ -12,7 +13,7 @@ from tqdm import tqdm
 
 from xaibench.color import AVAIL_METHODS
 from xaibench.determine_col import MIN_PER_COMMON_ATOMS
-from xaibench.utils import BLOCK_TYPES, DATA_PATH, FIG_PATH, LOG_PATH
+from xaibench.utils import BLOCK_TYPES, DATA_PATH, FIG_PATH, LOG_PATH, RESULTS_PATH
 
 N_THRESHOLDS = len(MIN_PER_COMMON_ATOMS)
 
@@ -104,7 +105,7 @@ def method_comparison(colors_path, avail_methods=None, assign_bonds=False):
                             scores.append(ag_j)
 
                     scores = np.array(scores)
-                    scores = scores[scores >= 0.0]
+                    scores = scores[scores >= 0.0]  # Filter examples with non-common MCS
 
                     if scores.size > 0:
                         avg_scores.setdefault(
@@ -117,28 +118,39 @@ def method_comparison(colors_path, avail_methods=None, assign_bonds=False):
 
 
 if __name__ == "__main__":
-    # Precompute results
-    colors_rf = glob(os.path.join(DATA_PATH, "validation_sets", "*", "colors_rf.pt"))
+    os.makedirs(RESULTS_PATH, exists_ok=True)
+    results_path = os.path.join(RESULTS_PATH, "scores.pt")
 
-    scores = {}
-    idxs = {}
-    scores["rf"] = {}
-    idxs["rf"] = {}
+    if not os.path.exists(results_path):
+        # Precompute results
+        colors_rf = glob(os.path.join(DATA_PATH, "validation_sets", "*", "colors_rf.pt"))
 
-    scores["rf"], idxs["rf"] = method_comparison(colors_rf)
+        scores = {}
+        idxs = {}
+        scores["rf"] = {}
+        idxs["rf"] = {}
 
-    for bt in BLOCK_TYPES:
-        print(f"Now loading block type {bt}...")
-        avail_methods = (
-            AVAIL_METHODS if bt == "gat" else AVAIL_METHODS[:-1]
-        )  # TODO: rewrite this more elegantly
-        colors_method = glob(
-            os.path.join(DATA_PATH, "validation_sets", "*", f"colors_{bt}.pt",)
-        )
+        scores["rf"], idxs["rf"] = method_comparison(colors_rf)
 
-        scores[bt], idxs[bt] = method_comparison(
-            colors_method, avail_methods, assign_bonds=True
-        )
+        for bt in BLOCK_TYPES:
+            print(f"Now loading block type {bt}...")
+            avail_methods = (
+                AVAIL_METHODS if bt == "gat" else AVAIL_METHODS[:-1]
+            )  # TODO: rewrite this more elegantly
+            colors_method = glob(
+                os.path.join(DATA_PATH, "validation_sets", "*", f"colors_{bt}.pt",)
+            )
+
+            scores[bt], idxs[bt] = method_comparison(
+                colors_method, avail_methods, assign_bonds=True
+            )
+
+        with open(results_path, "wb") as handle:
+            dill.dump(scores, handle)
+    
+    else:
+        with open(results_path, "rb") as handle:
+            scores = dill.load(handle)
 
     # Histograms per idx_th
     os.makedirs(FIG_PATH, exist_ok=True)
