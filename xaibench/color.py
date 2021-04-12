@@ -133,7 +133,7 @@ if __name__ == "__main__":
     )
     args = parser.parse_args()
 
-    if args.bt == "rf":
+    if args.block_type == "rf":
         colors = color_pairs_rf(args.pair_f)
     else:
         colors = color_pairs(pair_f=args.pair_f, block_type=args.block_type)
