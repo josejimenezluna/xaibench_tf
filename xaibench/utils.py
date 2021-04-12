@@ -15,5 +15,6 @@ MODELS_PATH = os.path.join(os.path.dirname(os.path.dirname(__file__)), "models")
 MODELS_RF_PATH = os.path.join(os.path.dirname(os.path.dirname(__file__)), "models_rf")
 LOG_PATH = os.path.join(os.path.dirname(os.path.dirname(__file__)), "logs")
 FIG_PATH = os.path.join(os.path.dirname(os.path.dirname(__file__)), "figures")
+RESULTS_PATH = os.path.join(os.path.dirname(os.path.dirname(__file__)), "results")
 
 BLOCK_TYPES = ["gcn", "mpnn", "gat"]
