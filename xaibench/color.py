@@ -21,11 +21,11 @@ from tqdm import tqdm
 from xaibench.diff_utils import diff_importance
 from xaibench.utils import DATA_PATH, MODELS_PATH, MODELS_RF_PATH
 
-physical_devices = tf.config.list_physical_devices("GPU")
-tf.config.experimental.set_memory_growth(physical_devices[0], True)
-
 AVAIL_METHODS = [IntegratedGradients, GradInput, CAM, GradCAM, AttentionWeights]
 
+physical_devices = tf.config.list_physical_devices("GPU")
+if len(physical_devices) > 0:
+    tf.config.experimental.set_memory_growth(physical_devices[0], True)
 
 def ig_ref(g):
     nodes = g.nodes * 0.0
