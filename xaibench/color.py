@@ -14,9 +14,12 @@ from graph_attribution.graphnet_techniques import (
 )
 from graph_attribution.graphs import get_graphs_tf, get_num_graphs
 from graph_nets.graphs import GraphsTuple
+from joblib import load as load_sklearn
+from rdkit.Chem import MolFromSmiles
 from tqdm import tqdm
 
-from xaibench.utils import DATA_PATH, MODELS_PATH
+from xaibench.diff_utils import diff_importance
+from xaibench.utils import DATA_PATH, MODELS_PATH, MODELS_RF_PATH
 
 physical_devices = tf.config.list_physical_devices("GPU")
 tf.config.experimental.set_memory_growth(physical_devices[0], True)
@@ -101,6 +104,25 @@ def color_pairs(pair_f, batch_size=16, block_type="gcn"):
     return colors
 
 
+def color_pairs_rf(pair_f):
+    id_ = os.path.basename(os.path.dirname(pair_f))
+    colors_pt = os.path.join(os.path.dirname(pair_f), "colors.pt")
+
+    if not os.path.exists(colors_pt):
+        raise ValueError(f"No colors available for id {id_}. Skipping...")
+
+    df = pd.read_csv(pair_f)
+    model = load_sklearn(os.path.join(MODELS_RF_PATH, f"{id_}.pt"))
+
+    colors = []
+
+    for row in tqdm(df.itertuples(), total=len(df)):
+        mol_i, mol_j = MolFromSmiles(getattr(row, "smiles_i")), MolFromSmiles(getattr(row, "smiles_j"))
+        color_i, color_j = diff_importance(mol_i, model), diff_importance(mol_j, model)
+        colors.append((color_i, color_j))
+    return colors
+
+
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
     parser.add_argument(
@@ -111,7 +133,11 @@ if __name__ == "__main__":
     )
     args = parser.parse_args()
 
-    colors = color_pairs(pair_f=args.pair_f, block_type=args.block_type)
+    if args.bt == "rf":
+        colors = color_pairs_rf(args.pair_f)
+    else:
+        colors = color_pairs(pair_f=args.pair_f, block_type=args.block_type)
+
     id_ = os.path.basename(os.path.dirname(args.pair_f))
 
     with open(

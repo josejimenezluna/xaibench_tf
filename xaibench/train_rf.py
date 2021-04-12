@@ -5,17 +5,11 @@ import pickle
 import numpy as np
 import pandas as pd
 from joblib import dump
-from rdkit.Chem import AllChem, DataStructs, MolFromSmiles
+from rdkit.Chem import MolFromSmiles
 from sklearn.ensemble import RandomForestRegressor
 
 from xaibench.utils import LOG_PATH, MODELS_RF_PATH
-
-
-def featurize_ecfp4(mol, fp_size=1024, bond_radius=2):
-    fp = AllChem.GetMorganFingerprintAsBitVect(mol, bond_radius, nBits=fp_size)
-    arr = np.zeros((1,), dtype=np.float32)
-    DataStructs.ConvertToNumpyArray(fp, arr)
-    return arr
+from xaibench.diff_utils import featurize_ecfp4
 
 
 TEST_SEED = 1337
