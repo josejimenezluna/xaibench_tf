@@ -1,5 +1,6 @@
 import argparse
 import os
+from contextlib import nullcontext
 
 import dill
 import pandas as pd
@@ -23,9 +24,9 @@ from xaibench.utils import DATA_PATH, MODELS_PATH, MODELS_RF_PATH
 
 AVAIL_METHODS = [IntegratedGradients, GradInput, CAM, GradCAM, AttentionWeights]
 
-physical_devices = tf.config.list_physical_devices("GPU")
-if len(physical_devices) > 0:
-    tf.config.experimental.set_memory_growth(physical_devices[0], True)
+GPUS = tf.config.list_physical_devices("GPU")
+if len(GPUS) > 0:
+    tf.config.experimental.set_memory_growth(GPUS[0], True)
 
 def ig_ref(g):
     nodes = g.nodes * 0.0
@@ -91,8 +92,13 @@ def color_pairs(pair_f, batch_size=16, block_type="gcn"):
         n = get_num_graphs(g_i)
         indices = get_batch_indices(n, int(batch_size / 2))
 
+        if len(GPUS) > 0:
+            context = tf.device("/GPU:0")
+        else:
+            context = nullcontext()
+
         for idx in tqdm(indices):
-            with tf.device("/GPU:0"):
+            with context:
                 b_i, b_j = get_graphs_tf(g_i, idx), get_graphs_tf(g_j, idx)
                 c_i = col_method(**extra_kwargs).attribute(b_i, model)
                 c_j = col_method(**extra_kwargs).attribute(b_j, model)

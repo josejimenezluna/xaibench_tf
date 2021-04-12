@@ -30,6 +30,7 @@ def determine_bond_col(atom_col, mol):
 
 def gen_dummy_atoms(mol, dummy_atom_no=47):
     mod_mols = []
+
     for idx_atom in range(mol.GetNumAtoms()):
         mol_cpy = deepcopy(mol)
         mol_cpy.GetAtomWithIdx(idx_atom).SetAtomicNum(dummy_atom_no)
