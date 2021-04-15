@@ -46,6 +46,7 @@ if __name__ == "__main__":
         ),
     )
 
+    os.makedirs(LOG_PATH, exist_ok=True)
     with open(
         os.path.join(
             LOG_PATH,
