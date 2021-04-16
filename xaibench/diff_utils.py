@@ -7,7 +7,6 @@ from graph_attribution.featurization import MolTensorizer
 from graph_nets.utils_tf import data_dicts_to_graphs_tuple
 from rdkit.Chem import AllChem, DataStructs
 
-from xaibench.utils import MODELS_PATH
 from xaibench.train_gnn import GPUS
 
 if GPUS:
