@@ -17,6 +17,9 @@ from tqdm import tqdm
 
 from xaibench.utils import LOG_PATH, MODELS_PATH
 
+GPUS = tf.config.list_physical_devices("GPU")
+if len(GPUS) > 0:
+    tf.config.experimental.set_memory_growth(GPUS[0], True)
 
 N_EPOCHS = 500
 

@@ -1,31 +1,17 @@
-import numpy as np
-from rdkit.Chem import AllChem, DataStructs
+from contextlib import nullcontext
 from copy import deepcopy
 
-GREEN_COL = (0, 1, 0)
-RED_COL = (1, 0, 0)
+import numpy as np
+import tensorflow as tf
+from graph_attribution.featurization import MolTensorizer
+from graph_nets.utils_tf import data_dicts_to_graphs_tuple
+from rdkit.Chem import AllChem, DataStructs
 
+from xaibench.utils import MODELS_PATH
+from xaibench.train_gnn import GPUS
 
-def determine_atom_col(atom_importance, eps=1e-5):
-    atom_col = {}
-
-    for idx, v in enumerate(atom_importance):
-        if v > eps:
-            atom_col[idx] = GREEN_COL
-        if v < -eps:
-            atom_col[idx] = RED_COL
-    return atom_col
-
-
-def determine_bond_col(atom_col, mol):
-    bond_col = {}
-
-    for idx, bond in enumerate(mol.GetBonds()):
-        atom_i_idx, atom_j_idx = bond.GetBeginAtomIdx(), bond.GetEndAtomIdx()
-        if atom_i_idx in atom_col and atom_j_idx in atom_col:
-            if atom_col[atom_i_idx] == atom_col[atom_j_idx]:
-                bond_col[idx] = atom_col[atom_i_idx]
-    return bond_col
+if GPUS:
+    tf.config.experimental.set_memory_growth(GPUS[0], True)
 
 
 def gen_dummy_atoms(mol, dummy_atom_no=47):
@@ -45,7 +31,7 @@ def featurize_ecfp4(mol, fp_size=1024, bond_radius=2):
     return arr
 
 
-def diff_importance(
+def diff_rf(
     mol, model, task="regression", fp_size=1024, bond_radius=2, dummy_atom_no=47
 ):
     og_fp = featurize_ecfp4(mol, fp_size, bond_radius)
@@ -62,5 +48,32 @@ def diff_importance(
     mod_fps = [featurize_ecfp4(mol) for mol in mod_mols]
     mod_fps = np.vstack(mod_fps)
     mod_preds = pred_fun(mod_fps)
+    return og_pred - mod_preds
+
+
+def gen_masked_atom_feats(og_g):
+    masked_gs = []
+    for node_idx in range(og_g[0]["nodes"].shape[0]):
+        g = deepcopy(og_g)
+        g[0]["nodes"][node_idx] *= 0.0
+        masked_gs.append(g[0])
+    return masked_gs
+
+
+def diff_gnn(smiles, model):
+    tensorizer = MolTensorizer()
+    if GPUS:
+        context = tf.device("/GPU:0")
+    else:
+        context = nullcontext()
+
+    og_g = tensorizer.transform_data_dict([smiles])
+    masked_gs = gen_masked_atom_feats(og_g)
+
+    og_gt = data_dicts_to_graphs_tuple(og_g)
+    gts = data_dicts_to_graphs_tuple(masked_gs)
+    with context:
+        og_pred = model(og_gt)
+        mod_preds = model(gts)
     return og_pred - mod_preds
 

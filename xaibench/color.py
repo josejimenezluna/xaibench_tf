@@ -19,13 +19,13 @@ from joblib import load as load_sklearn
 from rdkit.Chem import MolFromSmiles
 from tqdm import tqdm
 
-from xaibench.diff_utils import diff_importance
+from xaibench.diff_utils import diff_rf
 from xaibench.utils import DATA_PATH, MODELS_PATH, MODELS_RF_PATH
+from xaibench.train_gnn import GPUS
 
 AVAIL_METHODS = [IntegratedGradients, GradInput, CAM, GradCAM, AttentionWeights]
 
-GPUS = tf.config.list_physical_devices("GPU")
-if len(GPUS) > 0:
+if GPUS:
     tf.config.experimental.set_memory_growth(GPUS[0], True)
 
 def ig_ref(g):
@@ -124,7 +124,7 @@ def color_pairs_rf(pair_f):
 
     for row in tqdm(df.itertuples(), total=len(df)):
         mol_i, mol_j = MolFromSmiles(getattr(row, "smiles_i")), MolFromSmiles(getattr(row, "smiles_j"))
-        color_i, color_j = diff_importance(mol_i, model), diff_importance(mol_j, model)
+        color_i, color_j = diff_rf(mol_i, model), diff_rf(mol_j, model)
         colors.append((color_i, color_j))
     return colors
 
