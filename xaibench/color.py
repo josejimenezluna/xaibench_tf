@@ -92,7 +92,7 @@ def color_pairs(pair_f, batch_size=16, block_type="gcn"):
         n = get_num_graphs(g_i)
         indices = get_batch_indices(n, int(batch_size / 2))
 
-        if len(GPUS) > 0:
+        if GPUS:
             context = tf.device("/GPU:0")
         else:
             context = nullcontext()
