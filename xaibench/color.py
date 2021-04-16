@@ -19,16 +19,10 @@ from tqdm import tqdm
 
 from xaibench.color_utils import get_batch_indices, ig_ref
 from xaibench.diff_utils import diff_gnn, diff_rf
-from xaibench.train_gnn import GPUS
+from xaibench.train_gnn import DEVICE
 from xaibench.utils import DATA_PATH, MODELS_PATH, MODELS_RF_PATH
 
 AVAIL_METHODS = [IntegratedGradients, GradInput, CAM, GradCAM, AttentionWeights]
-
-if GPUS:
-    tf.config.experimental.set_memory_growth(GPUS[0], True)
-    DEVICE = tf.device("/GPU:0")
-else:
-    DEVICE = nullcontext()
 
 
 def color_pairs(pair_df, model, batch_size=16, block_type="gcn"):
@@ -105,7 +99,9 @@ if __name__ == "__main__":
         model_rf = load_sklearn(os.path.join(MODELS_RF_PATH, f"{id_}.pt"))
         colors = color_pairs_diff(pair_df, model=model_rf, diff_fun=diff_rf)
     else:
-        with open(os.path.join(MODELS_PATH, f"{args.block_type}_{id_}.pt"), "rb") as handle:
+        with open(
+            os.path.join(MODELS_PATH, f"{args.block_type}_{id_}.pt"), "rb"
+        ) as handle:
             model_gnn = dill.load(handle)
 
         colors = color_pairs(pair_df, model_gnn, block_type=args.block_type)

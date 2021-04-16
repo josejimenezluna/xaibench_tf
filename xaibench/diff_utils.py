@@ -1,4 +1,3 @@
-from contextlib import nullcontext
 from copy import deepcopy
 
 import numpy as np
@@ -7,10 +6,7 @@ from graph_attribution.featurization import MolTensorizer
 from graph_nets.utils_tf import data_dicts_to_graphs_tuple
 from rdkit.Chem import AllChem, DataStructs, MolFromSmiles
 
-from xaibench.train_gnn import GPUS
-
-if GPUS:
-    tf.config.experimental.set_memory_growth(GPUS[0], True)
+from xaibench.train_gnn import DEVICE
 
 
 def gen_dummy_atoms(mol, dummy_atom_no=47):
@@ -68,17 +64,13 @@ def gen_masked_atom_feats(og_g):
 
 def diff_gnn(smiles, model):
     tensorizer = MolTensorizer()
-    if GPUS:
-        context = tf.device("/GPU:0")
-    else:
-        context = nullcontext()
 
     og_g = tensorizer.transform_data_dict([smiles])
     masked_gs = gen_masked_atom_feats(og_g)
 
     og_gt = data_dicts_to_graphs_tuple(og_g)
     gts = data_dicts_to_graphs_tuple(masked_gs)
-    with context:
+    with DEVICE:
         og_pred = model(og_gt)
         mod_preds = model(gts)
     return tf.squeeze(og_pred - mod_preds).numpy()

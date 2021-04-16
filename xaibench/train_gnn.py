@@ -1,5 +1,6 @@
 import argparse
 import collections
+from contextlib import nullcontext
 import os
 
 import dill
@@ -18,8 +19,13 @@ from tqdm import tqdm
 from xaibench.utils import LOG_PATH, MODELS_PATH
 
 GPUS = tf.config.list_physical_devices("GPU")
-if len(GPUS) > 0:
+
+if GPUS:
     tf.config.experimental.set_memory_growth(GPUS[0], True)
+    DEVICE = tf.device("/GPU:0")
+else:
+    DEVICE = nullcontext()
+
 
 N_EPOCHS = 500
 
