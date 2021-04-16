@@ -1,7 +1,7 @@
 import argparse
 import collections
-from contextlib import nullcontext
 import os
+from contextlib import nullcontext
 
 import dill
 import pandas as pd
@@ -35,7 +35,7 @@ if __name__ == "__main__":
         "-csv", dest="csv", type=str, required=True,
     )
     parser.add_argument(
-        "-bt", dest="block_type", type=str, required=False, default="gcn"
+        "-block_type", dest="block_type", type=str, required=False, default="gcn"
     )
     args = parser.parse_args()
 
@@ -66,7 +66,7 @@ if __name__ == "__main__":
             target_type=target_type,
             n_layers=hp.n_layers,
         )
-        model(graph_data) # one pass needed for init
+        model(graph_data)  # one pass needed for init
 
         optimizer = snt.optimizers.Adam(hp.learning_rate)
 

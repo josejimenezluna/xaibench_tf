@@ -38,10 +38,11 @@ def diff_rf(
     mol = mol_read_f(mol_string)
     og_fp = featurize_ecfp4(mol, fp_size, bond_radius)
 
-    if task == "regression":
-        pred_fun = lambda x: model.predict(x)
-    elif task == "binary":
-        pred_fun = lambda x: model.predict_proba(x)[:, 1]
+    pred_fun = (
+        lambda x: model.predict_proba(x)[:, 1]
+        if task == "binary"
+        else lambda x: model.predict(x)
+    )
 
     og_pred = pred_fun(og_fp[np.newaxis, :])
 
