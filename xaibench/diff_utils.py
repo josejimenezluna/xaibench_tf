@@ -5,7 +5,7 @@ import numpy as np
 import tensorflow as tf
 from graph_attribution.featurization import MolTensorizer
 from graph_nets.utils_tf import data_dicts_to_graphs_tuple
-from rdkit.Chem import AllChem, DataStructs
+from rdkit.Chem import AllChem, DataStructs, MolFromSmiles
 
 from xaibench.train_gnn import GPUS
 
@@ -31,8 +31,15 @@ def featurize_ecfp4(mol, fp_size=1024, bond_radius=2):
 
 
 def diff_rf(
-    mol, model, task="regression", fp_size=1024, bond_radius=2, dummy_atom_no=47
+    mol_string,
+    model,
+    task="regression",
+    fp_size=1024,
+    bond_radius=2,
+    dummy_atom_no=47,
+    mol_read_f=MolFromSmiles,
 ):
+    mol = mol_read_f(mol_string)
     og_fp = featurize_ecfp4(mol, fp_size, bond_radius)
 
     if task == "regression":
@@ -74,5 +81,5 @@ def diff_gnn(smiles, model):
     with context:
         og_pred = model(og_gt)
         mod_preds = model(gts)
-    return og_pred - mod_preds
+    return tf.squeeze(og_pred - mod_preds).numpy()
 
