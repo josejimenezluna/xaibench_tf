@@ -117,7 +117,7 @@ def method_comparison(colors_path, avail_methods=None, assign_bonds=False):
 
 
 if __name__ == "__main__":
-    os.makedirs(RESULTS_PATH, exists_ok=True)
+    os.makedirs(RESULTS_PATH, exist_ok=True)
     results_path = os.path.join(RESULTS_PATH, "scores.pt")
 
     if not os.path.exists(results_path):
