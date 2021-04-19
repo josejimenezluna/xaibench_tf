@@ -21,7 +21,7 @@ def tanimoto_sim(mol_i, mol_j, radius=2):
 
 BOND_RADIUS = 2
 FP_SIZE = 1024
-N_JOBS = int(os.environ["LSB_DJOB_NUMPROC"])
+N_JOBS = int(os.getenv("LSB_DJOB_NUMPROC", "1"))
 
 
 def parallel_wrapper(mol, rest_inchis, n_total):
