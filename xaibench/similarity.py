@@ -10,6 +10,10 @@ from rdkit.DataStructs import TanimotoSimilarity
 
 from xaibench.utils import DATA_PATH
 
+BOND_RADIUS = 2
+FP_SIZE = 1024
+N_JOBS = int(os.getenv("LSB_DJOB_NUMPROC", "1"))
+
 
 def tanimoto_sim(mol_i, mol_j, radius=2):
     fp_i, fp_j = (
@@ -17,11 +21,6 @@ def tanimoto_sim(mol_i, mol_j, radius=2):
         GetMorganFingerprint(mol_j, radius),
     )
     return TanimotoSimilarity(fp_i, fp_j)
-
-
-BOND_RADIUS = 2
-FP_SIZE = 1024
-N_JOBS = int(os.getenv("LSB_DJOB_NUMPROC", "1"))
 
 
 def parallel_wrapper(mol, rest_inchis, n_total):
