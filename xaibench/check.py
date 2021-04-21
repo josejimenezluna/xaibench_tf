@@ -38,6 +38,7 @@ def distribute_bonds(cm, mol):
     return atom_imp
 
 
+#TODO: this function needs to be refactored
 def method_comparison(colors_path, avail_methods=None, assign_bonds=False):
     avg_scores = {}
     idx_valid = {}
@@ -48,6 +49,10 @@ def method_comparison(colors_path, avail_methods=None, assign_bonds=False):
         with open(os.path.join(dirname, "colors.pt"), "rb") as handle:
             colors = dill.load(handle)
 
+        with open(color_method_f, "rb") as handle:
+            manual_colors = dill.load(handle)
+
+        # If bond importances are used, bond information from the mols is needed
         if assign_bonds:
             pair_df = pd.read_csv(os.path.join(dirname, "pairs.csv"))
             mols = [
@@ -56,13 +61,14 @@ def method_comparison(colors_path, avail_methods=None, assign_bonds=False):
             ]
             assert len(mols) == len(colors)
 
-        with open(color_method_f, "rb") as handle:
-            manual_colors = dill.load(handle)
-
         for method in avail_methods if avail_methods is not None else ["rf"]:
             if avail_methods is not None:
-                method_name = method.__name__
-                if assign_bonds:
+                if method == "diff":
+                    method_name = method
+                else:
+                    method_name = method.__name__
+
+                if assign_bonds and method_name != "diff":
                     colors_method = [
                         (
                             distribute_bonds(cm_pair[0], mol_pair[0]),
@@ -70,11 +76,14 @@ def method_comparison(colors_path, avail_methods=None, assign_bonds=False):
                         )
                         for cm_pair, mol_pair in zip(manual_colors[method_name], mols)
                     ]
-                else:
+                elif method_name != "diff":
                     colors_method = [
                         (cm[0].nodes.numpy(), cm[1].nodes.numpy())
                         for cm in manual_colors[method_name]
                     ]
+                else:
+                    colors_method = manual_colors[method_name]
+
             else:
                 colors_method = manual_colors
                 method_name = method
@@ -104,7 +113,9 @@ def method_comparison(colors_path, avail_methods=None, assign_bonds=False):
                             scores.append(ag_j)
 
                     scores = np.array(scores)
-                    scores = scores[scores >= 0.0]  # Filter examples with non-common MCS
+                    scores = scores[
+                        scores >= 0.0
+                    ]  # Filter examples with non-common MCS
 
                     if scores.size > 0:
                         avg_scores.setdefault(
@@ -121,8 +132,9 @@ if __name__ == "__main__":
     results_path = os.path.join(RESULTS_PATH, "scores.pt")
 
     if not os.path.exists(results_path):
-        # Precompute results
-        colors_rf = glob(os.path.join(DATA_PATH, "validation_sets", "*", "colors_rf.pt"))
+        colors_rf = glob(
+            os.path.join(DATA_PATH, "validation_sets", "*", "colors_rf.pt")
+        )
 
         scores = {}
         idxs = {}
@@ -133,9 +145,11 @@ if __name__ == "__main__":
 
         for bt in BLOCK_TYPES:
             print(f"Now loading block type {bt}...")
-            avail_methods = (
-                AVAIL_METHODS if bt == "gat" else AVAIL_METHODS[:-1]
-            )  # TODO: rewrite this more elegantly
+            avail_methods = AVAIL_METHODS if bt == "gat" else AVAIL_METHODS[:-1]
+            avail_methods = avail_methods + [
+                "diff"
+            ]  # TODO: rewrite this more elegantly
+
             colors_method = glob(
                 os.path.join(DATA_PATH, "validation_sets", "*", f"colors_{bt}.pt",)
             )
@@ -146,7 +160,7 @@ if __name__ == "__main__":
 
         with open(results_path, "wb") as handle:
             dill.dump(scores, handle)
-    
+
     else:
         with open(results_path, "rb") as handle:
             scores = dill.load(handle)
