@@ -169,23 +169,26 @@ if __name__ == "__main__":
     os.makedirs(FIG_PATH, exist_ok=True)
 
     for bt in BLOCK_TYPES:
-        ncols = len(AVAIL_METHODS) + 1 if bt == "gat" else len(AVAIL_METHODS)
+        ncols = len(AVAIL_METHODS) + 2 if bt == "gat" else len(AVAIL_METHODS) + 1
 
         avail_methods = (
             AVAIL_METHODS if bt == "gat" else AVAIL_METHODS[:-1]
         )  # TODO: rewrite this more elegantly
+        avail_methods = avail_methods + ["diff"]
+
         for idx_th in range(N_THRESHOLDS):
-            f, axs = plt.subplots(nrows=1, ncols=ncols, figsize=(12, 6))
+            f, axs = plt.subplots(nrows=1, ncols=ncols, figsize=(14, 6))
             axs[0].hist(scores["rf"]["rf"][idx_th], bins=50)
             axs[0].axvline(
                 np.median(scores["rf"]["rf"][idx_th]), linestyle="--", color="black"
             )
-            axs[0].set_xlabel("Diff.")
+            axs[0].set_xlabel("Sheridan")
             for idx_method, method in enumerate(avail_methods):
-                s = scores[bt][method.__name__][idx_th]
+                method_name = method if isinstance(method, str) else method.__name__
+                s = scores[bt][method_name][idx_th]
                 axs[idx_method + 1].hist(s, bins=50)
                 axs[idx_method + 1].axvline(np.median(s), linestyle="--", color="black")
-                axs[idx_method + 1].set_xlabel(method.__name__)
+                axs[idx_method + 1].set_xlabel(method_name)
 
             plt.suptitle(
                 f"Average agreement between attributions and coloring \n Block type: {bt} (bond), MCS Threshold: {MIN_PER_COMMON_ATOMS[idx_th]:.2f}"
@@ -209,12 +212,14 @@ if __name__ == "__main__":
 
     for bt in BLOCK_TYPES:
         avail_methods = AVAIL_METHODS if bt == "gat" else AVAIL_METHODS[:-1]
+        avail_methods = avail_methods + ["diff"]
         for method in avail_methods:
+            method_name = method if isinstance(method, str) else method.__name__
             medians = [
-                np.median(scores[bt][method.__name__][idx_th])
+                np.median(scores[bt][method_name][idx_th])
                 for idx_th in range(N_THRESHOLDS)
             ]
-            ax.plot(MIN_PER_COMMON_ATOMS, medians, label=f"{bt}_{method.__name__}")
+            ax.plot(MIN_PER_COMMON_ATOMS, medians, label=f"{bt}_{method_name}")
         ax.grid(True)
     ax.set_xlabel("MCS percentage common atoms (0-1)")
     ax.set_ylabel("Color agreement")
@@ -246,13 +251,14 @@ if __name__ == "__main__":
     y_rf = np.array(scores["rf"]["rf"][0])[exists_rf]
 
     for bt in BLOCK_TYPES:
-        ncols = len(AVAIL_METHODS) + 1 if bt == "gat" else len(AVAIL_METHODS)
+        ncols = len(AVAIL_METHODS) + 2 if bt == "gat" else len(AVAIL_METHODS) + 1
 
-        f, axs = plt.subplots(nrows=1, ncols=ncols, figsize=(12, 4))
+        f, axs = plt.subplots(nrows=1, ncols=ncols, figsize=(14, 4))
         similarities = []
         exists_idx = []
 
         avail_methods = AVAIL_METHODS if bt == "gat" else AVAIL_METHODS[:-1]
+        avail_methods = avail_methods + ["diff"]
 
         colors_bt = np.array(
             glob(os.path.join(DATA_PATH, "validation_sets", "*", f"colors_{bt}.pt",))
@@ -265,16 +271,17 @@ if __name__ == "__main__":
                 exists_idx.append(idx)
 
         axs[0].scatter(similarities_rf, y_rf, s=1.5)
-        axs[0].set_title("Diff.")
+        axs[0].set_title("Sheridan")
         axs[0].set_ylabel("Color agreement")
         axs[0].text(
             0.35, 0.9, "r={:.3f}".format(np.corrcoef(similarities_rf, y_rf)[0, 1])
         )
 
         for idx_m, method in enumerate(avail_methods):
-            y = np.array(scores[bt][method.__name__][0])[exists_idx]
+            method_name = method if isinstance(method, str) else method.__name__
+            y = np.array(scores[bt][method_name][0])[exists_idx]
             axs[idx_m + 1].scatter(similarities, y, s=1.5)
-            axs[idx_m + 1].set_title(f"{method.__name__}")
+            axs[idx_m + 1].set_title(f"{method_name}")
             axs[idx_m + 1].text(
                 0.35, 0.9, "r={:.3f}".format(np.corrcoef(similarities, y)[0, 1])
             )
@@ -299,13 +306,14 @@ if __name__ == "__main__":
     y_rf = np.array(scores["rf"]["rf"][0])[exists_rf]
 
     for bt in BLOCK_TYPES:
-        ncols = len(AVAIL_METHODS) + 1 if bt == "gat" else len(AVAIL_METHODS)
+        ncols = len(AVAIL_METHODS) + 2 if bt == "gat" else len(AVAIL_METHODS) + 1
         avail_methods = AVAIL_METHODS if bt == "gat" else AVAIL_METHODS[:-1]
+        avail_methods = avail_methods + ["diff"]
 
-        f, axs = plt.subplots(nrows=1, ncols=ncols, figsize=(12, 4))
+        f, axs = plt.subplots(nrows=1, ncols=ncols, figsize=(14, 4))
 
         axs[0].scatter(losses_rf, y_rf, s=1.5)
-        axs[0].set_title("Diff.")
+        axs[0].set_title("Sheridan")
         axs[0].set_ylabel("Color agreement")
         axs[0].text(
             1.0,
@@ -331,9 +339,10 @@ if __name__ == "__main__":
 
         losses = np.array(losses)
         for idx_m, method in enumerate(avail_methods):
-            y = np.array(scores[bt][method.__name__][0])
+            method_name = method if isinstance(method, str) else method.__name__
+            y = np.array(scores[bt][method_name][0])
             axs[idx_m + 1].scatter(losses, y, s=1.5)
-            axs[idx_m + 1].set_title(f"{method.__name__}")
+            axs[idx_m + 1].set_title(f"{method_name}")
             axs[idx_m + 1].text(
                 4.0,
                 0.9,
