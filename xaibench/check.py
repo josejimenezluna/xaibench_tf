@@ -130,12 +130,13 @@ def method_comparison(colors_path, avail_methods=None, assign_bonds=False):
 if __name__ == "__main__":
     os.makedirs(RESULTS_PATH, exist_ok=True)
     results_path = os.path.join(RESULTS_PATH, "scores.pt")
+    idxs_path = os.path.join(RESULTS_PATH, "idxs.pt")
 
-    if not os.path.exists(results_path):
-        colors_rf = glob(
-            os.path.join(DATA_PATH, "validation_sets", "*", "colors_rf.pt")
-        )
+    colors_rf = glob(
+        os.path.join(DATA_PATH, "validation_sets", "*", "colors_rf.pt")
+    )
 
+    if not (os.path.exists(results_path) and os.path.exists(idxs_path)):
         scores = {}
         idxs = {}
         scores["rf"] = {}
@@ -161,53 +162,62 @@ if __name__ == "__main__":
         with open(results_path, "wb") as handle:
             dill.dump(scores, handle)
 
+        with open(idxs_path, "wb") as handle:
+            dill.dump(idxs, handle)
+
     else:
         with open(results_path, "rb") as handle:
             scores = dill.load(handle)
 
+        with open(idxs_path, "rb") as handle:
+            idxs = dill.load(handle)
+
     # Histograms per idx_th
-    os.makedirs(FIG_PATH, exist_ok=True)
+    # os.makedirs(FIG_PATH, exist_ok=True)
 
-    for bt in BLOCK_TYPES:
-        ncols = len(AVAIL_METHODS) + 2 if bt == "gat" else len(AVAIL_METHODS) + 1
+    # for bt in BLOCK_TYPES:
+    #     ncols = len(AVAIL_METHODS) + 2 if bt == "gat" else len(AVAIL_METHODS) + 1
 
-        avail_methods = (
-            AVAIL_METHODS if bt == "gat" else AVAIL_METHODS[:-1]
-        )  # TODO: rewrite this more elegantly
-        avail_methods = avail_methods + ["diff"]
+    #     avail_methods = (
+    #         AVAIL_METHODS if bt == "gat" else AVAIL_METHODS[:-1]
+    #     )  # TODO: rewrite this more elegantly
+    #     avail_methods = avail_methods + ["diff"]
 
-        for idx_th in range(N_THRESHOLDS):
-            f, axs = plt.subplots(nrows=1, ncols=ncols, figsize=(14, 6))
-            axs[0].hist(scores["rf"]["rf"][idx_th], bins=50)
-            axs[0].axvline(
-                np.median(scores["rf"]["rf"][idx_th]), linestyle="--", color="black"
-            )
-            axs[0].set_xlabel("Sheridan")
-            for idx_method, method in enumerate(avail_methods):
-                method_name = method if isinstance(method, str) else method.__name__
-                s = scores[bt][method_name][idx_th]
-                axs[idx_method + 1].hist(s, bins=50)
-                axs[idx_method + 1].axvline(np.median(s), linestyle="--", color="black")
-                axs[idx_method + 1].set_xlabel(method_name)
+    #     for idx_th in range(N_THRESHOLDS):
+    #         f, axs = plt.subplots(nrows=1, ncols=ncols, figsize=(14, 6))
+    #         axs[0].hist(scores["rf"]["rf"][idx_th], bins=50)
+    #         axs[0].axvline(
+    #             np.median(scores["rf"]["rf"][idx_th]), linestyle="--", color="black"
+    #         )
+    #         axs[0].set_xlabel("Sheridan")
+    #         for idx_method, method in enumerate(avail_methods):
+    #             method_name = method if isinstance(method, str) else method.__name__
+    #             s = scores[bt][method_name][idx_th]
+    #             axs[idx_method + 1].hist(s, bins=50)
+    #             axs[idx_method + 1].axvline(np.median(s), linestyle="--", color="black")
+    #             axs[idx_method + 1].set_xlabel(method_name)
 
-            plt.suptitle(
-                f"Average agreement between attributions and coloring \n Block type: {bt} (bond), MCS Threshold: {MIN_PER_COMMON_ATOMS[idx_th]:.2f}"
-            )
-            plt.savefig(
-                os.path.join(FIG_PATH, f"color_agreement_bond_{bt}_{idx_th}.png"),
-                dpi=300,
-            )
-            plt.close()
+    #         plt.suptitle(
+    #             f"Average agreement between attributions and coloring \n Block type: {bt} (bond), MCS Threshold: {MIN_PER_COMMON_ATOMS[idx_th]:.2f}"
+    #         )
+    #         plt.savefig(
+    #             os.path.join(FIG_PATH, f"color_agreement_bond_{bt}_{idx_th}.png"),
+    #             dpi=300,
+    #         )
+    #         plt.close()
 
     # median plot
     f, ax = plt.subplots(figsize=(8, 8))
     fontP = FontProperties()
     fontP.set_size("xx-small")
+    cm = plt.get_cmap('tab20b')
+    num_colors = ((len(AVAIL_METHODS) + 2) * len(BLOCK_TYPES))
+    ax.set_prop_cycle('color', [cm(i / num_colors) for i in range(num_colors)])
 
     ax.plot(
         MIN_PER_COMMON_ATOMS,
         [np.median(scores["rf"]["rf"][idx_th]) for idx_th in range(N_THRESHOLDS)],
-        label="Diff.",
+        label="Diff.", marker="o"
     )
 
     for bt in BLOCK_TYPES:
@@ -219,7 +229,7 @@ if __name__ == "__main__":
                 np.median(scores[bt][method_name][idx_th])
                 for idx_th in range(N_THRESHOLDS)
             ]
-            ax.plot(MIN_PER_COMMON_ATOMS, medians, label=f"{bt}_{method_name}")
+            ax.plot(MIN_PER_COMMON_ATOMS, medians, label=f"{bt}_{method_name}", marker="o")
         ax.grid(True)
     ax.set_xlabel("MCS percentage common atoms (0-1)")
     ax.set_ylabel("Color agreement")
