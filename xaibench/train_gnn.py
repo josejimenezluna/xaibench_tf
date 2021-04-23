@@ -20,6 +20,9 @@ from tqdm import tqdm
 from xaibench.utils import LOG_PATH, MODELS_PATH
 
 GPUS = tf.config.list_physical_devices("GPU")
+N_EPOCHS = 500
+N_LAYERS = 10
+BATCH_SIZE = 32
 
 if GPUS:
     tf.config.experimental.set_memory_growth(GPUS[0], True)
@@ -27,10 +30,6 @@ if GPUS:
 else:
     DEVICE = nullcontext()
 
-
-N_EPOCHS = 500
-N_LAYERS = 10
-BATCH_SIZE = 32
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
