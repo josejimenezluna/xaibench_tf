@@ -4,6 +4,7 @@ import os
 from contextlib import nullcontext
 
 import dill
+import numpy as np
 import pandas as pd
 import sonnet as snt
 import tensorflow as tf
@@ -28,6 +29,8 @@ else:
 
 
 N_EPOCHS = 500
+N_LAYERS = 10
+BATCH_SIZE = 32
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
@@ -50,12 +53,20 @@ if __name__ == "__main__":
     tensorizer = MolTensorizer()
     graph_data = smiles_to_graphs_tuple(smiles, tensorizer)
 
-    hp = get_hparams({"block_type": args.block_type, "epochs": N_EPOCHS})
+    hp = get_hparams(
+        {
+            "block_type": args.block_type,
+            "epochs": N_EPOCHS,
+            "batch_size": BATCH_SIZE,
+            "n_layers": N_LAYERS,
+            "task_type": None
+        }
+    )
     task_act = RegresionTaskType().get_nn_activation_fn()
     task_loss = RegresionTaskType().get_nn_loss_fn()
     target_type = TargetType("globals")
 
-    with tf.device("/GPU:0"):
+    with DEVICE:
         model = GNN(
             node_size=hp.node_size,
             edge_size=hp.edge_size,
@@ -75,12 +86,15 @@ if __name__ == "__main__":
         )
 
         pbar = tqdm(range(hp.epochs))
-        losses = collections.defaultdict(list)
+        metrics = collections.defaultdict(list)
 
         for _ in pbar:
             train_loss = opt_one_epoch(graph_data, values).numpy()
-            losses["train"].append(train_loss)
-            pbar.set_postfix({key: values[-1] for key, values in losses.items()})
+            metrics["mse_train"].append(train_loss)
+            y_hat = model(graph_data).numpy().squeeze()
+            metrics["rs_train"].append(np.corrcoef(y_hat, values)[0, 1])
+
+            pbar.set_postfix({key: values[-1] for key, values in metrics.items()})
 
     os.makedirs(MODELS_PATH, exist_ok=True)
 
@@ -90,4 +104,4 @@ if __name__ == "__main__":
     os.makedirs(LOG_PATH, exist_ok=True)
 
     with open(os.path.join(LOG_PATH, f"{args.block_type}_{id_}.pt"), "wb") as handle:
-        dill.dump(losses, handle)
+        dill.dump(metrics, handle)
