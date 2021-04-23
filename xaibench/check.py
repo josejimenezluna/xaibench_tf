@@ -2,19 +2,23 @@ import os
 from glob import glob
 
 import dill
+import matplotlib
 import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd
-from sklearn.metrics import accuracy_score
 from matplotlib.font_manager import FontProperties
 from rdkit.Chem import MolFromSmiles
+from sklearn.metrics import accuracy_score
 from tqdm import tqdm
 
 from xaibench.color import AVAIL_METHODS
 from xaibench.determine_col import MIN_PER_COMMON_ATOMS
-from xaibench.utils import BLOCK_TYPES, DATA_PATH, FIG_PATH, LOG_PATH, RESULTS_PATH
+from xaibench.utils import (BLOCK_TYPES, DATA_PATH, FIG_PATH, LOG_PATH,
+                            RESULTS_PATH)
 
 N_THRESHOLDS = len(MIN_PER_COMMON_ATOMS)
+
+matplotlib.use("Agg")
 
 
 def color_agreement(color_true, color_pred, metric_f):
@@ -38,7 +42,7 @@ def distribute_bonds(cm, mol):
     return atom_imp
 
 
-#TODO: this function needs to be refactored
+# TODO: this function needs to be refactored
 def method_comparison(colors_path, avail_methods=None, assign_bonds=False):
     avg_scores = {}
     idx_valid = {}
@@ -132,9 +136,7 @@ if __name__ == "__main__":
     results_path = os.path.join(RESULTS_PATH, "scores.pt")
     idxs_path = os.path.join(RESULTS_PATH, "idxs.pt")
 
-    colors_rf = glob(
-        os.path.join(DATA_PATH, "validation_sets", "*", "colors_rf.pt")
-    )
+    colors_rf = glob(os.path.join(DATA_PATH, "validation_sets", "*", "colors_rf.pt"))
 
     if not (os.path.exists(results_path) and os.path.exists(idxs_path)):
         scores = {}
@@ -210,14 +212,15 @@ if __name__ == "__main__":
     f, ax = plt.subplots(figsize=(8, 8))
     fontP = FontProperties()
     fontP.set_size("xx-small")
-    cm = plt.get_cmap('tab20b')
-    num_colors = ((len(AVAIL_METHODS) + 2) * len(BLOCK_TYPES))
-    ax.set_prop_cycle('color', [cm(i / num_colors) for i in range(num_colors)])
+    cm = plt.get_cmap("tab20b")
+    num_colors = (len(AVAIL_METHODS) + 2) * len(BLOCK_TYPES)
+    ax.set_prop_cycle("color", [cm(i / num_colors) for i in range(num_colors)])
 
     ax.plot(
         MIN_PER_COMMON_ATOMS,
         [np.median(scores["rf"]["rf"][idx_th]) for idx_th in range(N_THRESHOLDS)],
-        label="Diff.", marker="o"
+        label="Sheridan",
+        marker="o",
     )
 
     for bt in BLOCK_TYPES:
@@ -229,7 +232,9 @@ if __name__ == "__main__":
                 np.median(scores[bt][method_name][idx_th])
                 for idx_th in range(N_THRESHOLDS)
             ]
-            ax.plot(MIN_PER_COMMON_ATOMS, medians, label=f"{bt}_{method_name}", marker="o")
+            ax.plot(
+                MIN_PER_COMMON_ATOMS, medians, label=f"{bt}_{method_name}", marker="o"
+            )
         ax.grid(True)
     ax.set_xlabel("MCS percentage common atoms (0-1)")
     ax.set_ylabel("Color agreement")
@@ -295,7 +300,7 @@ if __name__ == "__main__":
             axs[idx_m + 1].text(
                 0.35, 0.9, "r={:.3f}".format(np.corrcoef(similarities, y)[0, 1])
             )
-        f.text(0.5, 0.04, "Training/test max. Tanimoto similarity", ha="center")
+        f.text(0.5, 0.02, "Training/test max. Tanimoto similarity", ha="center")
         plt.suptitle(f"Block type: {bt}")
         plt.savefig(os.path.join(FIG_PATH, f"sim_agreement_bond_{bt}.png"), dpi=300)
         plt.close()
@@ -354,13 +359,13 @@ if __name__ == "__main__":
             axs[idx_m + 1].scatter(losses, y, s=1.5)
             axs[idx_m + 1].set_title(f"{method_name}")
             axs[idx_m + 1].text(
-                4.0,
+                3.0,
                 0.9,
                 "r={:.3f}".format(
                     np.corrcoef(losses[~np.isnan(losses)], y[~np.isnan(losses)])[0, 1]
                 ),
             )
-        f.text(0.5, 0.04, "Train MSE (bond)", ha="center")
+        f.text(0.5, 0.02, "Train MSE (bond)", ha="center")
         plt.suptitle(f"Block type: {bt}")
         plt.savefig(os.path.join(FIG_PATH, f"perf_agreement_bond_{bt}.png"), dpi=300)
         plt.close()
