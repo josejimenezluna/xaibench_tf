@@ -12,7 +12,6 @@ from xaibench.utils import LOG_PATH, MODELS_RF_PATH
 from xaibench.diff_utils import featurize_ecfp4
 
 
-TEST_SEED = 1337
 N_TREES = 1000
 N_JOBS = int(os.getenv("LSB_DJOB_NUMPROC", "1"))
 

@@ -174,39 +174,6 @@ if __name__ == "__main__":
         with open(idxs_path, "rb") as handle:
             idxs = dill.load(handle)
 
-    # Histograms per idx_th
-    # os.makedirs(FIG_PATH, exist_ok=True)
-
-    # for bt in BLOCK_TYPES:
-    #     ncols = len(AVAIL_METHODS) + 2 if bt == "gat" else len(AVAIL_METHODS) + 1
-
-    #     avail_methods = (
-    #         AVAIL_METHODS if bt == "gat" else AVAIL_METHODS[:-1]
-    #     )  # TODO: rewrite this more elegantly
-    #     avail_methods = avail_methods + ["diff"]
-
-    #     for idx_th in range(N_THRESHOLDS):
-    #         f, axs = plt.subplots(nrows=1, ncols=ncols, figsize=(14, 6))
-    #         axs[0].hist(scores["rf"]["rf"][idx_th], bins=50)
-    #         axs[0].axvline(
-    #             np.median(scores["rf"]["rf"][idx_th]), linestyle="--", color="black"
-    #         )
-    #         axs[0].set_xlabel("Sheridan")
-    #         for idx_method, method in enumerate(avail_methods):
-    #             method_name = method if isinstance(method, str) else method.__name__
-    #             s = scores[bt][method_name][idx_th]
-    #             axs[idx_method + 1].hist(s, bins=50)
-    #             axs[idx_method + 1].axvline(np.median(s), linestyle="--", color="black")
-    #             axs[idx_method + 1].set_xlabel(method_name)
-
-    #         plt.suptitle(
-    #             f"Average agreement between attributions and coloring \n Block type: {bt} (bond), MCS Threshold: {MIN_PER_COMMON_ATOMS[idx_th]:.2f}"
-    #         )
-    #         plt.savefig(
-    #             os.path.join(FIG_PATH, f"color_agreement_bond_{bt}_{idx_th}.png"),
-    #             dpi=300,
-    #         )
-    #         plt.close()
 
     # median plot
     f, ax = plt.subplots(figsize=(8, 8))
@@ -304,6 +271,59 @@ if __name__ == "__main__":
         plt.suptitle(f"Block type: {bt}")
         plt.savefig(os.path.join(FIG_PATH, f"sim_agreement_bond_{bt}.png"), dpi=300)
         plt.close()
+
+    # training set size
+    n_rf = []
+    exists_rf = []
+
+    for idx, color_f in enumerate(colors_rf):
+        train_file = os.path.join(os.path.dirname(color_f), "training.csv")
+        if os.path.exists(sim_file):
+            n_rf.append(len(pd.read_csv(train_file)))
+            exists_rf.append(idx)
+
+    y_rf = np.array(scores["rf"]["rf"][0])[exists_rf]
+
+    for bt in BLOCK_TYPES:
+        ncols = len(AVAIL_METHODS) + 2 if bt == "gat" else len(AVAIL_METHODS) + 1
+
+        f, axs = plt.subplots(nrows=1, ncols=ncols, figsize=(14, 4))
+        n = []
+        exists_idx = []
+
+        avail_methods = AVAIL_METHODS if bt == "gat" else AVAIL_METHODS[:-1]
+        avail_methods = avail_methods + ["diff"]
+
+        colors_bt = np.array(
+            glob(os.path.join(DATA_PATH, "validation_sets", "*", f"colors_{bt}.pt",))
+        )[idxs[bt]["CAM"][0]]
+
+        for idx, color_f in enumerate(colors_bt):
+            train_file = os.path.join(os.path.dirname(color_f), "training.csv")
+            if os.path.exists(train_file):
+                n.append(len(pd.read_csv(train_file)))
+                exists_idx.append(idx)
+
+        axs[0].scatter(n_rf, y_rf, s=1.5)
+        axs[0].set_title("Sheridan")
+        axs[0].set_ylabel("Color agreement")
+        axs[0].text(
+            0.35, 0.9, "r={:.3f}".format(np.corrcoef(n_rf, y_rf)[0, 1])
+        )
+
+        for idx_m, method in enumerate(avail_methods):
+            method_name = method if isinstance(method, str) else method.__name__
+            y = np.array(scores[bt][method_name][0])[exists_idx]
+            axs[idx_m + 1].scatter(n, y, s=1.5)
+            axs[idx_m + 1].set_title(f"{method_name}")
+            axs[idx_m + 1].text(
+                0.35, 0.9, "r={:.3f}".format(np.corrcoef(n, y)[0, 1])
+            )
+        f.text(0.5, 0.02, "Number of training samples", ha="center")
+        plt.suptitle(f"Block type: {bt}")
+        plt.savefig(os.path.join(FIG_PATH, f"n_agreement_bond_{bt}.png"), dpi=300)
+        plt.close()
+
 
     # performance
     losses_rf = []
