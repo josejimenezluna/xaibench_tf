@@ -56,6 +56,7 @@ if __name__ == "__main__":
         for elem in tqdm(allatt):
             att_true.append(elem[0]["nodes"])
 
+        ## TODO: figure out logic with several ground truths
         att_true = np.array(att_true)[test_idxs]
         weird_idxs = []
         for idx, t_att in enumerate(tqdm(att_true)):
