@@ -1,4 +1,5 @@
 import os
+import dill
 
 import numpy as np
 import pandas as pd
@@ -7,7 +8,7 @@ from sklearn.ensemble import RandomForestClassifier
 from sklearn.metrics import roc_auc_score
 from tqdm import tqdm
 from xaibench.diff_utils import diff_rf
-from xaibench.explore.utils import GADATA_PATH
+from xaibench.explore.utils import GADATA_PATH, RFGA_PATH
 from xaibench.train_rf import featurize_ecfp4
 
 TEST_SUITES = ["logic7", "logic8", "logic10", "benzene"]
@@ -71,3 +72,7 @@ if __name__ == "__main__":
         att_pred = np.array([item for sublist in att_pred for item in sublist])
 
         att_aucs[t_suite] = roc_auc_score(att_true, att_pred)
+
+    os.makedirs(RFGA_PATH, exist_ok=True)
+    with open(os.path.join(RFGA_PATH, "results.pt"), "wb") as handle:
+        dill.dump([aucs, att_aucs], handle)

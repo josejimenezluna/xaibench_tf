@@ -6,3 +6,5 @@ GADATA_PATH = os.path.join(
     "data",
 )
 
+RFGA_PATH = os.path.join(os.path.dirname(__file__), "data")
+
