@@ -10,7 +10,7 @@ from xaibench.retrieve_bdb_series import SET_PATH
 from xaibench.utils import ensure_readability
 
 MW_THR = 800
-MIN_P_DIFF = 2.0
+MIN_P_DIFF = 1.0
 SYMBOL_EXCLUDE = set(["=", ">", "<"])
 
 
