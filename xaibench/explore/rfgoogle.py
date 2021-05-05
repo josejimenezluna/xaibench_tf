@@ -32,7 +32,7 @@ if __name__ == "__main__":
         fps_train, fps_test = fps[train_idxs, :], fps[test_idxs, :]
         label_train, label_test = df["label"].values[train_idxs], df["label"].values[test_idxs]
 
-        rf = RandomForestClassifier(n_jobs=-2, n_estimators=1e4)
+        rf = RandomForestClassifier(n_jobs=11, n_estimators=10000)
         rf.fit(fps_train, label_train)
 
         pred_test = rf.predict_proba(fps_test)[:, 1]
