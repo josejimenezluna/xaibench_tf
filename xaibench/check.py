@@ -376,7 +376,7 @@ if __name__ == "__main__":
             id_ = os.path.basename(os.path.dirname(color_f))
 
             with open(os.path.join(LOG_PATH, f"{bt}_{id_}.pt"), "rb") as handle:
-                losses.append(dill.load(handle)["train"][-1])
+                losses.append(dill.load(handle)["mse_train"][-1])
 
         losses = np.array(losses)
         for idx_m, method in enumerate(avail_methods):

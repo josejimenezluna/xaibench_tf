@@ -41,6 +41,7 @@ def retrieve_ligands(conn, tsv):
             cur.execute(SQL_QUERY.format(uniprot_id))
             records.extend(cur.fetchall())
             cur.close()
+
     records = pd.DataFrame(
         records,
         columns=[
@@ -51,6 +52,7 @@ def retrieve_ligands(conn, tsv):
             "standard_type",
         ],
     )
+
     records = records.loc[
         (records["standard_type"].isin(TYPES))
         & (records["standard_relation"] == "=")
