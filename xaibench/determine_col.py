@@ -13,6 +13,11 @@ TIMEOUT_MCS = 300
 
 
 def assign_colors(mol, common_idx, diff):
+    """ 
+    Given an rdkit mol, a set of common atom indices and an 
+    activity difference value, assigns positive or negative values
+    to the non-common atoms.
+    """
     color = {}
 
     for idx in range(mol.GetNumAtoms()):
@@ -29,6 +34,10 @@ def assign_colors(mol, common_idx, diff):
 
 
 def color_mcs(mcs, mol_i, mol_j, diff, min_per_common):
+    """ 
+    Given a maximum common substructure object and a pair of rdkit mols,
+    returns the assigned colors for the latter.
+    """
     color_i = {}
     color_j = {}
 

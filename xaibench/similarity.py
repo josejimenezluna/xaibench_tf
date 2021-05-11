@@ -1,4 +1,5 @@
 import argparse
+import multiprocessing
 import os
 
 import numpy as np
@@ -12,10 +13,13 @@ from xaibench.utils import DATA_PATH
 
 BOND_RADIUS = 2
 FP_SIZE = 1024
-N_JOBS = int(os.getenv("LSB_DJOB_NUMPROC", "1"))
+N_JOBS = int(os.getenv("LSB_DJOB_NUMPROC", multiprocessing.cpu_count()))
 
 
 def tanimoto_sim(mol_i, mol_j, radius=2):
+    """ 
+    Returns tanimoto similarity for a pair of mols
+    """
     fp_i, fp_j = (
         GetMorganFingerprint(mol_i, radius),
         GetMorganFingerprint(mol_j, radius),
@@ -24,6 +28,9 @@ def tanimoto_sim(mol_i, mol_j, radius=2):
 
 
 def parallel_wrapper(mol, rest_inchis, n_total):
+    """ 
+    Wrapper for similarity computation over the rows of the matrix.
+    """
     sims = np.zeros(n_total, dtype=np.float32)
     n_rest = len(rest_inchis)
     fill_idx = n_total - n_rest
@@ -36,6 +43,10 @@ def parallel_wrapper(mol, rest_inchis, n_total):
 
 
 def sim_pair_train(pairs_f, training_f):
+    """ 
+    Computes train/test tanimoto similarity matrices for the compounds in
+    BindingDB and the ChEMBL database. 
+    """
     pair_df = pd.read_csv(pairs_f)
     training_df = pd.read_csv(training_f)
 

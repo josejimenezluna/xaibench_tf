@@ -1,4 +1,5 @@
 import argparse
+import multiprocessing
 import os
 import pickle
 
@@ -8,12 +9,11 @@ from joblib import dump
 from rdkit.Chem import MolFromSmiles
 from sklearn.ensemble import RandomForestRegressor
 
-from xaibench.utils import LOG_PATH, MODELS_RF_PATH
 from xaibench.diff_utils import featurize_ecfp4
-
+from xaibench.utils import LOG_PATH, MODELS_RF_PATH
 
 N_TREES = 1000
-N_JOBS = int(os.getenv("LSB_DJOB_NUMPROC", "1"))
+N_JOBS = int(os.getenv("LSB_DJOB_NUMPROC", multiprocessing.cpu_count()))
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
