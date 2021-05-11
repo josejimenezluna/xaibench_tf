@@ -22,6 +22,9 @@ matplotlib.use("Agg")
 
 
 def color_agreement(color_true, color_pred, metric_f):
+    """
+    Checks agreement between true and predicted colors.
+    """
     assert len(color_true) == len(color_pred)
     idx_noncommon = [idx for idx, val in color_true.items() if val != 0.0]
     if len(idx_noncommon) == 0:
@@ -32,6 +35,9 @@ def color_agreement(color_true, color_pred, metric_f):
 
 
 def distribute_bonds(cm, mol):
+    """
+    Distributes bond importances equally across their connecting nodes.
+    """
     atom_imp = cm.nodes.numpy()
     bond_imp = np.array([b for idx, b in enumerate(cm.edges.numpy()) if idx % 2 == 0])
 

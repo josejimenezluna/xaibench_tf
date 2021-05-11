@@ -24,6 +24,10 @@ AVAIL_METHODS = [IntegratedGradients, GradInput, CAM, GradCAM, AttentionWeights]
 
 
 def color_pairs(pair_df, model, batch_size=16, block_type="gcn"):
+    """
+    Uses the methods in AVAIL_METHODS alongside GNN models to color
+    all pairs of molecules available in `pair_df`.
+    """
     tensorizer = MolTensorizer()
 
     g_i, g_j = (
@@ -62,6 +66,10 @@ def color_pairs(pair_df, model, batch_size=16, block_type="gcn"):
 
 
 def color_pairs_diff(pair_df, model, diff_fun):
+    """
+    Uses Sheridan's (2019) method to color all pairs of molecules
+    available in `pair_df`.
+    """
     colors = []
 
     for row in tqdm(pair_df.itertuples(), total=len(pair_df)):

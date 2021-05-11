@@ -3,6 +3,9 @@ from graph_nets.graphs import GraphsTuple
 
 
 def ig_ref(g):
+    """
+    Reference graph computation for Integrated Gradients.
+    """
     nodes = g.nodes * 0.0
     edges = g.edges * 0.0
     g_ref = GraphsTuple(
@@ -18,6 +21,9 @@ def ig_ref(g):
 
 
 def get_batch_indices(n: int, batch_size: int):
+    """
+    Utility function for the batching of graphs.
+    """
     indices = tf.range(n)
     if n < batch_size:
         indices = tf.reshape(indices, (1, n))
