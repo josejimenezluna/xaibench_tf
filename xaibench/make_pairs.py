@@ -65,10 +65,9 @@ def process_tsv(
                 }
             )
 
-            if len(pairs_df) > 0:
-                pairs_df.to_csv(
-                    os.path.join(os.path.dirname(tsv_file), "pairs.csv"), index=None
-                )
+            pairs_df.to_csv(
+                os.path.join(os.path.dirname(tsv_file), "pairs.csv"), index=None
+            )
 
 
 if __name__ == "__main__":
