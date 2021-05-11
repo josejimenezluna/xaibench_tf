@@ -10,6 +10,10 @@ from xaibench.train_gnn import DEVICE
 
 
 def gen_dummy_atoms(mol, dummy_atom_no=47):
+    """
+    Given a specific rdkit mol, returns a list of mols where each individual atom
+    has been replaced by a dummy atom type.
+    """
     mod_mols = []
 
     for idx_atom in range(mol.GetNumAtoms()):
@@ -20,6 +24,9 @@ def gen_dummy_atoms(mol, dummy_atom_no=47):
 
 
 def featurize_ecfp4(mol, fp_size=1024, bond_radius=2):
+    """
+    Gets an ECFP4 fingerprint for a specific rdkit mol. 
+    """
     fp = AllChem.GetMorganFingerprintAsBitVect(mol, bond_radius, nBits=fp_size)
     arr = np.zeros((1,), dtype=np.float32)
     DataStructs.ConvertToNumpyArray(fp, arr)
@@ -35,6 +42,10 @@ def diff_rf(
     dummy_atom_no=47,
     mol_read_f=MolFromSmiles,
 ):
+    """
+    Given a mol specified by a string (SMILES, inchi), uses Sheridan's method (2019)
+    alongside an sklearn model to compute atom attribution.
+    """
     mol = mol_read_f(mol_string)
     og_fp = featurize_ecfp4(mol, fp_size, bond_radius)
 
@@ -55,6 +66,10 @@ def diff_rf(
 
 
 def gen_masked_atom_feats(og_g):
+    """ 
+    Given a graph, returns a list of graphs where individual atoms
+    are masked.
+    """
     masked_gs = []
     for node_idx in range(og_g[0]["nodes"].shape[0]):
         g = deepcopy(og_g)
@@ -64,6 +79,10 @@ def gen_masked_atom_feats(og_g):
 
 
 def diff_gnn(smiles, model):
+    """ 
+    Given a SMILES string, uses Sheridan's method (2019) alongside
+    a trained GNN model to compute atom attribution.
+    """
     tensorizer = MolTensorizer()
 
     og_g = tensorizer.transform_data_dict([smiles])

@@ -23,8 +23,8 @@ def process_tsv(
     mw_thr=MW_THR,
 ):
     """
-    Looks activity cliffs for the protein-ligand validation sets on BindingDB,
-    using a log activity factor difference of min_p_diff and a molecular
+    Looks for activity cliffs in the protein-ligand validation sets on BindingDB,
+    filtering by a log activity factor difference of min_p_diff and a molecular
     weight factor of mw_thr
     """
     df = pd.read_csv(tsv_file, sep="\t")

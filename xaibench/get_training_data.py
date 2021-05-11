@@ -25,6 +25,10 @@ MIN_SAMPLES = 100
 
 
 def retrieve_ligands(conn, tsv):
+    """
+    Queries a local ChEMBL postgres database in order to extract training data
+    for a specific UniprotID from a BindingDB tsv file.
+    """
     df = pd.read_csv(tsv, sep="\t")
     uniprot_ids = pd.unique(df[UNIPROT_COL])
     uniprot_ids = uniprot_ids[~pd.isna(uniprot_ids)]
