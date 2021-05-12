@@ -19,8 +19,12 @@ if __name__ == "__main__":
 
     for t_suite in TEST_SUITES:
         print("Now evaluating suite {}...".format(t_suite))
-        df = pd.read_csv(os.path.join(GADATA_PATH, f"{t_suite}", f"{t_suite}_smiles.csv"))
-        idxs = np.load(os.path.join(GADATA_PATH, f"{t_suite}", f"{t_suite}_traintest_indices.npz"))
+        df = pd.read_csv(
+            os.path.join(GADATA_PATH, f"{t_suite}", f"{t_suite}_smiles.csv")
+        )
+        idxs = np.load(
+            os.path.join(GADATA_PATH, f"{t_suite}", f"{t_suite}_traintest_indices.npz")
+        )
         train_idxs, test_idxs = idxs["train_index"], idxs["test_index"]
 
         fps = []
@@ -31,7 +35,10 @@ if __name__ == "__main__":
 
         fps = np.vstack(fps)
         fps_train, fps_test = fps[train_idxs, :], fps[test_idxs, :]
-        label_train, label_test = df["label"].values[train_idxs], df["label"].values[test_idxs]
+        label_train, label_test = (
+            df["label"].values[train_idxs],
+            df["label"].values[test_idxs],
+        )
 
         rf = RandomForestClassifier(n_jobs=11, n_estimators=10000)
         rf.fit(fps_train, label_train)
@@ -46,11 +53,16 @@ if __name__ == "__main__":
 
         for sm_test in tqdm(smiles_test):
             att_pred.append(diff_rf(sm_test, rf, task="binary"))
-        
+
         att_pred = np.array(att_pred)
 
         # test attributions
-        allatt = np.load(os.path.join(GADATA_PATH, f"{t_suite}", "true_raw_attribution_datadicts.npz"), allow_pickle=True)["datadict_list"]
+        allatt = np.load(
+            os.path.join(
+                GADATA_PATH, f"{t_suite}", "true_raw_attribution_datadicts.npz"
+            ),
+            allow_pickle=True,
+        )["datadict_list"]
         att_true = []
 
         for elem in tqdm(allatt):

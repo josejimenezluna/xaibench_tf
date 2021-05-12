@@ -1,6 +1,6 @@
 import argparse
 import os
-import pickle
+import dill
 
 import numpy as np
 import pandas as pd
@@ -76,7 +76,7 @@ def color_wrapper(pf):
             colors.append(res_mins)
 
         with open(os.path.join(os.path.dirname(pf), "colors.pt"), "wb") as handle:
-            pickle.dump(colors, handle)
+            dill.dump(colors, handle)
 
 
 if __name__ == "__main__":

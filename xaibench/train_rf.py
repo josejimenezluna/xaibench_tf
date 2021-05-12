@@ -1,7 +1,7 @@
 import argparse
 import multiprocessing
 import os
-import pickle
+import dill
 
 import numpy as np
 import pandas as pd
@@ -53,4 +53,4 @@ if __name__ == "__main__":
         ),
         "wb",
     ) as handle:
-        pickle.dump([rmse, r], handle)
+        dill.dump([rmse, r], handle)
