@@ -52,7 +52,7 @@ def diff_rf(
     pred_fun = (
         lambda x: model.predict_proba(x)[:, 1]
         if task == "binary"
-        else lambda x: model.predict(x)
+        else model.predict(x)
     )
 
     og_pred = pred_fun(og_fp[np.newaxis, :])
