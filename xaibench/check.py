@@ -98,12 +98,12 @@ def method_comparison(colors_path, avail_methods=None, assign_bonds=False):
                 colors_method = manual_colors
                 method_name = method
 
+            assert len(colors) == len(colors_method)
+
             for idx_th in range(N_THRESHOLDS):
                 colors_th = [col[idx_th] for col in colors]
 
-                assert len(colors) == len(colors_method)
-
-                if sum(1 for _ in filter(None.__ne__, colors)) > 0:
+                if sum(1 for _ in filter(None.__ne__, colors_th)) > 0:
                     scores = []
                     for color_pair_true, color_pair_pred in zip(
                         colors_th, colors_method
@@ -145,6 +145,7 @@ if __name__ == "__main__":
     colors_rf = glob(os.path.join(DATA_PATH, "validation_sets", "*", "colors_rf.pt"))
 
     if not (os.path.exists(results_path) and os.path.exists(idxs_path)):
+        print("Computing scores...")
         scores = {}
         idxs = {}
         scores["rf"] = {}
