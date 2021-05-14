@@ -97,24 +97,25 @@ if __name__ == "__main__":
     colors_pt = os.path.join(os.path.dirname(args.pair_f), "colors.pt")
 
     if not os.path.exists(colors_pt):
-        raise ValueError(f"No colors available for id {id_}. Skipping...")
+        print(f"No colors available for id {id_}. Skipping...")
 
-    pair_df = pd.read_csv(args.pair_f)
-
-    if args.block_type == "rf":
-        model_rf = load_sklearn(os.path.join(MODELS_RF_PATH, f"{id_}.pt"))
-        colors = color_pairs_diff(pair_df, model=model_rf, diff_fun=diff_rf)
     else:
+        pair_df = pd.read_csv(args.pair_f)
+
+        if args.block_type == "rf":
+            model_rf = load_sklearn(os.path.join(MODELS_RF_PATH, f"{id_}.pt"))
+            colors = color_pairs_diff(pair_df, model=model_rf, diff_fun=diff_rf)
+        else:
+            with open(
+                os.path.join(MODELS_PATH, f"{args.block_type}_{id_}.pt"), "rb"
+            ) as handle:
+                model_gnn = dill.load(handle)
+
+            colors = color_pairs(pair_df, model_gnn, block_type=args.block_type)
+            colors["diff"] = color_pairs_diff(pair_df, model=model_gnn, diff_fun=diff_gnn)
+
         with open(
-            os.path.join(MODELS_PATH, f"{args.block_type}_{id_}.pt"), "rb"
+            os.path.join(DATA_PATH, "validation_sets", id_, f"colors_{args.block_type}.pt"),
+            "wb",
         ) as handle:
-            model_gnn = dill.load(handle)
-
-        colors = color_pairs(pair_df, model_gnn, block_type=args.block_type)
-        colors["diff"] = color_pairs_diff(pair_df, model=model_gnn, diff_fun=diff_gnn)
-
-    with open(
-        os.path.join(DATA_PATH, "validation_sets", id_, f"colors_{args.block_type}.pt"),
-        "wb",
-    ) as handle:
-        dill.dump(colors, handle)
+            dill.dump(colors, handle)
