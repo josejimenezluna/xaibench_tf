@@ -58,7 +58,7 @@ def sim_pair_train(pairs_f, training_f):
 
     sims = Parallel(n_jobs=N_JOBS, verbose=100, backend="multiprocessing")(
         delayed(parallel_wrapper)(
-            MolFromSmiles(smiles), training_df["standard_inchi"].tolist(), n_total
+            MolFromSmiles(smiles), training_df["canonical_smiles"].tolist(), n_total
         )
         for smiles in smiles_pair
     )
