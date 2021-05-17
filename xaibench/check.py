@@ -36,7 +36,7 @@ def color_agreement(color_true, color_pred, metric_f):
 
 def distribute_bonds(cm, mol):
     """
-    Distributes bond importances equally across their connecting nodes.
+    Distributes bond importances evenly across their connecting nodes.
     """
     atom_imp = cm.nodes.numpy()
     bond_imp = np.array([b for idx, b in enumerate(cm.edges.numpy()) if idx % 2 == 0])
@@ -139,6 +139,7 @@ def method_comparison(colors_path, avail_methods=None, assign_bonds=False):
 
 if __name__ == "__main__":
     os.makedirs(RESULTS_PATH, exist_ok=True)
+    os.makedirs(FIG_PATH, exist_ok=True)
     results_path = os.path.join(RESULTS_PATH, "scores.pt")
     idxs_path = os.path.join(RESULTS_PATH, "idxs.pt")
 
