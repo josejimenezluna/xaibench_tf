@@ -5,7 +5,7 @@ import os
 import numpy as np
 import pandas as pd
 from joblib import Parallel, delayed
-from rdkit.Chem import MolFromInchi, MolFromSmiles
+from rdkit.Chem import MolFromSmiles
 from rdkit.Chem.AllChem import GetMorganFingerprint
 from rdkit.DataStructs import TanimotoSimilarity
 
@@ -27,16 +27,16 @@ def tanimoto_sim(mol_i, mol_j, radius=2):
     return TanimotoSimilarity(fp_i, fp_j)
 
 
-def parallel_wrapper(mol, rest_inchis, n_total):
+def parallel_wrapper(mol, rest_smiles, n_total):
     """ 
     Wrapper for similarity computation over the rows of the matrix.
     """
     sims = np.zeros(n_total, dtype=np.float32)
-    n_rest = len(rest_inchis)
+    n_rest = len(rest_smiles)
     fill_idx = n_total - n_rest
 
-    for inchi in rest_inchis:
-        mol_j = MolFromInchi(inchi)
+    for smiles in rest_smiles:
+        mol_j = MolFromSmiles(smiles)
         sims[fill_idx] = tanimoto_sim(mol, mol_j)
         fill_idx += 1
     return sims
