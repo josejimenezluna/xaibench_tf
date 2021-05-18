@@ -89,7 +89,7 @@ if __name__ == "__main__":
 
         for _ in pbar:
             train_loss = opt_one_epoch(graph_data, values).numpy()
-            metrics["mse_train"].append(train_loss)
+            metrics["mse_train"].append(np.sqrt(train_loss))
             y_hat = model(graph_data).numpy().squeeze()
             metrics["rs_train"].append(np.corrcoef(y_hat, values)[0, 1])
 

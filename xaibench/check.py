@@ -393,7 +393,7 @@ if __name__ == "__main__":
                     np.corrcoef(losses[~np.isnan(losses)], y[~np.isnan(losses)])[0, 1]
                 ),
             )
-        f.text(0.5, 0.02, "Train MSE (bond)", ha="center")
+        f.text(0.5, 0.02, "Train RMSE", ha="center")
         plt.suptitle(f"Block type: {bt}")
         plt.savefig(os.path.join(FIG_PATH, f"perf_agreement_bond_{bt}.png"), dpi=300)
         plt.close()
