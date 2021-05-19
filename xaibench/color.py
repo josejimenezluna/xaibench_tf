@@ -3,15 +3,18 @@ import os
 
 import dill
 import pandas as pd
-from graph_attribution.featurization import MolTensorizer, smiles_to_graphs_tuple
-from graph_attribution.graphnet_techniques import (
-    CAM,
-    AttentionWeights,
-    GradCAM,
-    GradInput,
-    IntegratedGradients,
-)
+import tensorflow as tf
+from graph_attribution.experiments import GNN
+from graph_attribution.featurization import (MolTensorizer,
+                                             smiles_to_graphs_tuple)
+from graph_attribution.graphnet_models import BlockType
+from graph_attribution.graphnet_techniques import (CAM, AttentionWeights,
+                                                   GradCAM, GradInput,
+                                                   IntegratedGradients)
 from graph_attribution.graphs import get_graphs_tf, get_num_graphs
+from graph_attribution.hparams import get_hparams
+from graph_attribution.tasks import RegresionTaskType
+from graph_attribution.templates import TargetType
 from joblib import load as load_sklearn
 from tqdm import tqdm
 
@@ -106,16 +109,40 @@ if __name__ == "__main__":
             model_rf = load_sklearn(os.path.join(MODELS_RF_PATH, f"{id_}.pt"))
             colors = color_pairs_diff(pair_df, model=model_rf, diff_fun=diff_rf)
         else:
-            with open(
-                os.path.join(MODELS_PATH, f"{args.block_type}_{id_}.pt"), "rb"
-            ) as handle:
-                model_gnn = dill.load(handle)
+            hp = get_hparams({"block_type": args.block_type, "task_type": None})
+
+            task_act = RegresionTaskType().get_nn_activation_fn()
+            target_type = TargetType("globals")
+
+            with DEVICE:
+                model_gnn = GNN(
+                    node_size=hp.node_size,
+                    edge_size=hp.edge_size,
+                    global_size=hp.global_size,
+                    y_output_size=1,
+                    block_type=BlockType(hp.block_type),
+                    activation=task_act,
+                    target_type=target_type,
+                    n_layers=hp.n_layers,
+                )
+                checkpoint = tf.train.Checkpoint(model_gnn)
+                checkpoint.restore(
+                    os.path.join(
+                        MODELS_PATH,
+                        f"{args.block_type}_{id_}",
+                        f"{args.block_type}_{id_}-1",
+                    )
+                )
 
             colors = color_pairs(pair_df, model_gnn, block_type=args.block_type)
-            colors["diff"] = color_pairs_diff(pair_df, model=model_gnn, diff_fun=diff_gnn)
+            colors["diff"] = color_pairs_diff(
+                pair_df, model=model_gnn, diff_fun=diff_gnn
+            )
 
         with open(
-            os.path.join(DATA_PATH, "validation_sets", id_, f"colors_{args.block_type}.pt"),
+            os.path.join(
+                DATA_PATH, "validation_sets", id_, f"colors_{args.block_type}.pt"
+            ),
             "wb",
         ) as handle:
             dill.dump(colors, handle)

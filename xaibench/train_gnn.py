@@ -58,7 +58,7 @@ if __name__ == "__main__":
             "epochs": N_EPOCHS,
             "batch_size": BATCH_SIZE,
             "n_layers": N_LAYERS,
-            "task_type": None
+            "task_type": None,
         }
     )
     task_act = RegresionTaskType().get_nn_activation_fn()
@@ -96,9 +96,14 @@ if __name__ == "__main__":
             pbar.set_postfix({key: values[-1] for key, values in metrics.items()})
 
     os.makedirs(MODELS_PATH, exist_ok=True)
+    os.makedirs(os.path.join(MODELS_PATH, f"{args.block_type}_{id_}"), exist_ok=True)
 
-    with open(os.path.join(MODELS_PATH, f"{args.block_type}_{id_}.pt"), "wb") as handle:
-        dill.dump(model, handle)
+    checkpoint = tf.train.Checkpoint(model)
+    checkpoint.save(
+        os.path.join(
+            MODELS_PATH, f"{args.block_type}_{id_}", f"{args.block_type}_{id_}"
+        )
+    )
 
     os.makedirs(LOG_PATH, exist_ok=True)
 
