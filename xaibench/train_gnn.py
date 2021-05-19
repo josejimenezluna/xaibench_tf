@@ -95,7 +95,6 @@ if __name__ == "__main__":
 
             pbar.set_postfix({key: values[-1] for key, values in metrics.items()})
 
-    os.makedirs(MODELS_PATH, exist_ok=True)
     os.makedirs(os.path.join(MODELS_PATH, f"{args.block_type}_{id_}"), exist_ok=True)
 
     checkpoint = tf.train.Checkpoint(model)
