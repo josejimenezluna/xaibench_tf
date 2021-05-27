@@ -20,8 +20,8 @@ from tqdm import tqdm
 from xaibench.utils import LOG_PATH, MODELS_PATH
 
 GPUS = tf.config.list_physical_devices("GPU")
-N_EPOCHS = 500
-N_LAYERS = 10
+N_EPOCHS = 1000
+N_LAYERS = 3
 BATCH_SIZE = 32
 
 if GPUS:
@@ -55,10 +55,10 @@ if __name__ == "__main__":
     hp = get_hparams(
         {
             "block_type": args.block_type,
+            "learning_rate": 1e-5,
             "epochs": N_EPOCHS,
             "batch_size": BATCH_SIZE,
             "n_layers": N_LAYERS,
-            "task_type": None,
         }
     )
     task_act = RegresionTaskType().get_nn_activation_fn()
@@ -89,7 +89,7 @@ if __name__ == "__main__":
 
         for _ in pbar:
             train_loss = opt_one_epoch(graph_data, values).numpy()
-            metrics["mse_train"].append(np.sqrt(train_loss))
+            metrics["rmse_train"].append(np.sqrt(train_loss))
             y_hat = model(graph_data).numpy().squeeze()
             metrics["rs_train"].append(np.corrcoef(y_hat, values)[0, 1])
 
