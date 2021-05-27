@@ -21,8 +21,10 @@ from xaibench.utils import LOG_PATH, MODELS_PATH
 
 GPUS = tf.config.list_physical_devices("GPU")
 N_EPOCHS = 1000
+LR = 1e-3
+HID_SIZE = 128
 N_LAYERS = 3
-BATCH_SIZE = 32
+BATCH_SIZE = 64
 
 if GPUS:
     tf.config.experimental.set_memory_growth(GPUS[0], True)
@@ -54,8 +56,11 @@ if __name__ == "__main__":
 
     hp = get_hparams(
         {
+            "node_size": HID_SIZE,
+            "edge_size": HID_SIZE,
+            "global_size": HID_SIZE,
             "block_type": args.block_type,
-            "learning_rate": 1e-5,
+            "learning_rate": LR,
             "epochs": N_EPOCHS,
             "batch_size": BATCH_SIZE,
             "n_layers": N_LAYERS,
@@ -81,16 +86,17 @@ if __name__ == "__main__":
         optimizer = snt.optimizers.Adam(hp.learning_rate)
 
         opt_one_epoch = make_tf_opt_epoch_fn(
-            graph_data, values, hp.batch_size, model, optimizer, task_loss
+            graph_data, values, hp.batch_size, model, optimizer, task_loss, l2_reg=1.0
         )
 
         pbar = tqdm(range(hp.epochs))
         metrics = collections.defaultdict(list)
 
+
         for _ in pbar:
             train_loss = opt_one_epoch(graph_data, values).numpy()
-            metrics["rmse_train"].append(np.sqrt(train_loss))
             y_hat = model(graph_data).numpy().squeeze()
+            metrics["rmse_train"].append(np.sqrt(train_loss))
             metrics["rs_train"].append(np.corrcoef(y_hat, values)[0, 1])
 
             pbar.set_postfix({key: values[-1] for key, values in metrics.items()})
