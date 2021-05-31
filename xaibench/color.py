@@ -5,12 +5,15 @@ import dill
 import pandas as pd
 import tensorflow as tf
 from graph_attribution.experiments import GNN
-from graph_attribution.featurization import (MolTensorizer,
-                                             smiles_to_graphs_tuple)
+from graph_attribution.featurization import MolTensorizer, smiles_to_graphs_tuple
 from graph_attribution.graphnet_models import BlockType
-from graph_attribution.graphnet_techniques import (CAM, AttentionWeights,
-                                                   GradCAM, GradInput,
-                                                   IntegratedGradients)
+from graph_attribution.graphnet_techniques import (
+    CAM,
+    AttentionWeights,
+    GradCAM,
+    GradInput,
+    IntegratedGradients,
+)
 from graph_attribution.graphs import get_graphs_tf, get_num_graphs
 from graph_attribution.hparams import get_hparams
 from graph_attribution.tasks import RegresionTaskType
@@ -20,7 +23,7 @@ from tqdm import tqdm
 
 from xaibench.color_utils import get_batch_indices, ig_ref
 from xaibench.diff_utils import diff_gnn, diff_rf
-from xaibench.train_gnn import DEVICE
+from xaibench.train_gnn import DEVICE, HID_SIZE, N_LAYERS
 from xaibench.utils import DATA_PATH, MODELS_PATH, MODELS_RF_PATH
 
 AVAIL_METHODS = [IntegratedGradients, GradInput, CAM, GradCAM, AttentionWeights]
@@ -109,8 +112,15 @@ if __name__ == "__main__":
             model_rf = load_sklearn(os.path.join(MODELS_RF_PATH, f"{id_}.pt"))
             colors = color_pairs_diff(pair_df, model=model_rf, diff_fun=diff_rf)
         else:
-            hp = get_hparams({"block_type": args.block_type, "task_type": None})
-
+            hp = get_hparams(
+                {
+                    "node_size": HID_SIZE,
+                    "edge_size": HID_SIZE,
+                    "global_size": HID_SIZE,
+                    "block_type": args.block_type,
+                    "n_layers": N_LAYERS,
+                }
+            )
             task_act = RegresionTaskType().get_nn_activation_fn()
             target_type = TargetType("globals")
 
