@@ -20,11 +20,11 @@ from tqdm import tqdm
 from xaibench.utils import LOG_PATH, MODELS_PATH
 
 GPUS = tf.config.list_physical_devices("GPU")
-N_EPOCHS = 1000
-LR = 1e-3
-HID_SIZE = 128
+N_EPOCHS = 1
+LR = 3e-4
+HID_SIZE = 64
 N_LAYERS = 3
-BATCH_SIZE = 64
+BATCH_SIZE = 32
 
 if GPUS:
     tf.config.experimental.set_memory_growth(GPUS[0], True)
@@ -86,7 +86,7 @@ if __name__ == "__main__":
         optimizer = snt.optimizers.Adam(hp.learning_rate)
 
         opt_one_epoch = make_tf_opt_epoch_fn(
-            graph_data, values, hp.batch_size, model, optimizer, task_loss, l2_reg=1.0
+            graph_data, values, hp.batch_size, model, optimizer, task_loss, l2_reg=0.0
         )
 
         pbar = tqdm(range(hp.epochs))
