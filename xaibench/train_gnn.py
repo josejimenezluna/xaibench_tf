@@ -20,7 +20,7 @@ from tqdm import tqdm
 from xaibench.utils import LOG_PATH, MODELS_PATH
 
 GPUS = tf.config.list_physical_devices("GPU")
-N_EPOCHS = 1
+N_EPOCHS = 300
 LR = 3e-4
 HID_SIZE = 64
 N_LAYERS = 3
@@ -50,6 +50,8 @@ if __name__ == "__main__":
         df["canonical_smiles"].values,
         df["pchembl_value"].values,
     )
+    
+    values = values[:, np.newaxis]
 
     tensorizer = MolTensorizer()
     graph_data = smiles_to_graphs_tuple(smiles, tensorizer)
@@ -97,7 +99,7 @@ if __name__ == "__main__":
             train_loss = opt_one_epoch(graph_data, values).numpy()
             y_hat = model(graph_data).numpy().squeeze()
             metrics["rmse_train"].append(np.sqrt(train_loss))
-            metrics["rs_train"].append(np.corrcoef(y_hat, values)[0, 1])
+            metrics["rs_train"].append(np.corrcoef(y_hat, values.squeeze())[0, 1])
 
             pbar.set_postfix({key: values[-1] for key, values in metrics.items()})
 
