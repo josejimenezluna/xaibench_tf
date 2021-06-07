@@ -6,7 +6,6 @@ from contextlib import nullcontext
 import dill
 import numpy as np
 import pandas as pd
-from sklearn.model_selection import train_test_split
 import sonnet as snt
 import tensorflow as tf
 from graph_attribution.experiments import GNN
@@ -16,6 +15,7 @@ from graph_attribution.hparams import get_hparams
 from graph_attribution.tasks import RegresionTaskType
 from graph_attribution.templates import TargetType
 from graph_attribution.training import make_tf_opt_epoch_fn
+from sklearn.model_selection import train_test_split
 from tqdm import tqdm
 
 from xaibench.utils import LOG_PATH, MODELS_PATH
@@ -120,12 +120,12 @@ if __name__ == "__main__":
             y_hat_test = model(graph_test).numpy().squeeze()
 
             metrics["rmse_train"].append(rmse(y_hat_train, values_train.squeeze()))
-            metrics["rs_train"].append(
+            metrics["pcc_train"].append(
                 np.corrcoef(y_hat_train, values_train.squeeze())[0, 1]
             )
 
             metrics["rmse_test"].append(rmse(y_hat_test, values_test.squeeze()))
-            metrics["rs_test"].append(
+            metrics["pcc_test"].append(
                 np.corrcoef(y_hat_train, values_train.squeeze())[0, 1]
             )
 
