@@ -126,7 +126,7 @@ if __name__ == "__main__":
 
             metrics["rmse_test"].append(rmse(y_hat_test, values_test.squeeze()))
             metrics["pcc_test"].append(
-                np.corrcoef(y_hat_train, values_train.squeeze())[0, 1]
+                np.corrcoef(y_hat_test, values_test.squeeze())[0, 1]
             )
 
             pbar.set_postfix({key: values[-1] for key, values in metrics.items()})
