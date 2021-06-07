@@ -6,6 +6,7 @@ from contextlib import nullcontext
 import dill
 import numpy as np
 import pandas as pd
+from sklearn.model_selection import train_test_split
 import sonnet as snt
 import tensorflow as tf
 from graph_attribution.experiments import GNN
@@ -25,6 +26,11 @@ LR = 3e-4
 HID_SIZE = 64
 N_LAYERS = 3
 BATCH_SIZE = 32
+TEST_SET_SIZE = 0.2
+SEED = 1337
+
+
+rmse = lambda x, y: np.sqrt(np.mean((x - y) ** 2))
 
 if GPUS:
     tf.config.experimental.set_memory_growth(GPUS[0], True)
@@ -50,11 +56,19 @@ if __name__ == "__main__":
         df["canonical_smiles"].values,
         df["pchembl_value"].values,
     )
-    
+
     values = values[:, np.newaxis]
 
+    idx_train, idx_test = train_test_split(
+        np.arange(len(smiles)), random_state=SEED, test_size=TEST_SET_SIZE
+    )
+
+    smiles_train, values_train = smiles[idx_train], values[idx_train, :]
+    smiles_test, values_test = smiles[idx_test], values[idx_test, :]
+
     tensorizer = MolTensorizer()
-    graph_data = smiles_to_graphs_tuple(smiles, tensorizer)
+    graph_train = smiles_to_graphs_tuple(smiles_train, tensorizer)
+    graph_test = smiles_to_graphs_tuple(smiles_test, tensorizer)
 
     hp = get_hparams(
         {
@@ -83,23 +97,37 @@ if __name__ == "__main__":
             target_type=target_type,
             n_layers=hp.n_layers,
         )
-        model(graph_data)  # one pass needed for init
+        model(graph_train)  # one pass needed for init
 
         optimizer = snt.optimizers.Adam(hp.learning_rate)
 
         opt_one_epoch = make_tf_opt_epoch_fn(
-            graph_data, values, hp.batch_size, model, optimizer, task_loss, l2_reg=0.0
+            graph_train,
+            values_train,
+            hp.batch_size,
+            model,
+            optimizer,
+            task_loss,
+            l2_reg=0.0,
         )
 
         pbar = tqdm(range(hp.epochs))
         metrics = collections.defaultdict(list)
 
-
         for _ in pbar:
-            train_loss = opt_one_epoch(graph_data, values).numpy()
-            y_hat = model(graph_data).numpy().squeeze()
-            metrics["rmse_train"].append(np.sqrt(train_loss))
-            metrics["rs_train"].append(np.corrcoef(y_hat, values.squeeze())[0, 1])
+            train_loss = opt_one_epoch(graph_train, values_train).numpy()
+            y_hat_train = model(graph_train).numpy().squeeze()
+            y_hat_test = model(graph_test).numpy().squeeze()
+
+            metrics["rmse_train"].append(rmse(y_hat_train, values_train.squeeze()))
+            metrics["rs_train"].append(
+                np.corrcoef(y_hat_train, values_train.squeeze())[0, 1]
+            )
+
+            metrics["rmse_test"].append(rmse(y_hat_test, values_test.squeeze()))
+            metrics["rs_test"].append(
+                np.corrcoef(y_hat_train, values_train.squeeze())[0, 1]
+            )
 
             pbar.set_postfix({key: values[-1] for key, values in metrics.items()})
 
