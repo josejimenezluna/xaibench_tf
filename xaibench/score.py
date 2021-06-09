@@ -141,7 +141,7 @@ if __name__ == "__main__":
     os.makedirs(RESULTS_PATH, exist_ok=True)
     os.makedirs(FIG_PATH, exist_ok=True)
 
-    colors_rf = glob(os.path.join(DATA_PATH, "validation_sets", "*", "colors_rf.pt"))
+    colors_rf = sorted(glob(os.path.join(DATA_PATH, "validation_sets", "*", "colors_rf.pt")))
 
     print("Computing scores...")
     scores = {}
@@ -158,9 +158,9 @@ if __name__ == "__main__":
             "diff"
         ]  # TODO: rewrite this more elegantly
 
-        colors_method = glob(
+        colors_method = sorted(glob(
             os.path.join(DATA_PATH, "validation_sets", "*", f"colors_{bt}.pt",)
-        )
+        ))
 
         scores[bt], idxs[bt] = method_comparison(
             colors_method, avail_methods, assign_bonds=True

@@ -19,9 +19,7 @@ def comparison_plot(xs, ys, block_type, common_x_label, savename):
     axs[0].scatter(xs["rf"], ys["rf"], s=1.5)
     axs[0].set_title("Sheridan")
     axs[0].set_ylabel("Color agreement")
-    axs[0].text(
-        0.35, 0.9, "r={:.3f}".format(np.corrcoef(xs["rf"], ys["rf"])[0, 1])
-    )
+    axs[0].text(0.35, 0.9, "r={:.3f}".format(np.corrcoef(xs["rf"], ys["rf"])[0, 1]))
 
     for idx_m, method in enumerate(avail_methods):
         method_name = method if isinstance(method, str) else method.__name__
@@ -29,7 +27,11 @@ def comparison_plot(xs, ys, block_type, common_x_label, savename):
         axs[idx_m + 1].scatter(xs[block_type], ys[block_type][method_name], s=1.5)
         axs[idx_m + 1].set_title(f"{method_name}")
         axs[idx_m + 1].text(
-            0.35, 0.9, "r={:.3f}".format(np.corrcoef(xs[block_type], ys[block_type][method_name])[0, 1])
+            0.35,
+            0.9,
+            "r={:.3f}".format(
+                np.corrcoef(xs[block_type], ys[block_type][method_name])[0, 1]
+            ),
         )
 
     f.text(0.5, 0.02, common_x_label, ha="center")
@@ -89,13 +91,22 @@ if __name__ == "__main__":
     )
     plt.close()
 
+
+    colors = {}
+    colors["rf"] = np.array(
+        sorted(glob(os.path.join(DATA_PATH, "validation_sets", "*", "colors_rf.pt")))
+    )[idxs["rf"]["rf"][0]]
+
+    for bt in BLOCK_TYPES:
+        colors[bt] = np.array(
+            glob(os.path.join(DATA_PATH, "validation_sets", "*", f"colors_{bt}.pt",))
+        )[idxs[bt]["CAM"][0]]
+
     # similarities
     similarities = collections.defaultdict(list)
     exists = collections.defaultdict(list)
 
-    colors_rf = np.array(scores["rf"])[idxs["rf"]["rf"][0]]
-
-    for idx, color_f in enumerate(colors_rf):
+    for idx, color_f in enumerate(colors["rf"]):
         sim_file = os.path.join(os.path.dirname(color_f), "similarity.npy")
         if os.path.exists(sim_file):
             similarities["rf"].append(np.load(sim_file).max())
@@ -112,11 +123,7 @@ if __name__ == "__main__":
         avail_methods = AVAIL_METHODS if bt == "gat" else AVAIL_METHODS[:-1]
         avail_methods = avail_methods + ["diff"]
 
-        colors_bt = np.array(
-            glob(os.path.join(DATA_PATH, "validation_sets", "*", f"colors_{bt}.pt",))
-        )[idxs[bt]["CAM"][0]]
-
-        for idx, color_f in enumerate(colors_bt):
+        for idx, color_f in enumerate(colors[bt]):
             sim_file = os.path.join(os.path.dirname(color_f), "similarity.npy")
             if os.path.exists(sim_file):
                 similarities[bt].append(np.load(sim_file).max())
@@ -128,16 +135,14 @@ if __name__ == "__main__":
             method_name = method if isinstance(method, str) else method.__name__
             y[bt][method_name] = np.array(scores[bt][method_name][0])[exists[bt]]
 
-
     for bt in BLOCK_TYPES:
         comparison_plot(similarities, y, bt, "Train/test max. Tanimoto similarity")
 
-
     # training set size
-    sizes = collections.defaultdict(list)   
+    sizes = collections.defaultdict(list)
     exists = collections.defaultdict(list)
 
-    for idx, color_f in enumerate(colors_rf):
+    for idx, color_f in enumerate(colors["rf"]):
         train_file = os.path.join(os.path.dirname(color_f), "training.csv")
         if os.path.exists(sim_file):
             sizes["rf"].append(len(pd.read_csv(train_file)))
@@ -150,11 +155,7 @@ if __name__ == "__main__":
         avail_methods = AVAIL_METHODS if bt == "gat" else AVAIL_METHODS[:-1]
         avail_methods = avail_methods + ["diff"]
 
-        colors_bt = np.array(
-            glob(os.path.join(DATA_PATH, "validation_sets", "*", f"colors_{bt}.pt",))
-        )[idxs[bt]["CAM"][0]]
-
-        for idx, color_f in enumerate(colors_bt):
+        for idx, color_f in enumerate(colors[bt]):
             train_file = os.path.join(os.path.dirname(color_f), "training.csv")
             if os.path.exists(train_file):
                 sizes[bt].append(len(pd.read_csv(train_file)))
@@ -169,7 +170,6 @@ if __name__ == "__main__":
     for bt in BLOCK_TYPES:
         comparison_plot(sizes, y, bt, "Number of training samples")
 
-
     # performance
     all_metrics = {}
     all_metrics["rmse_train"] = collections.defaultdict(list)
@@ -179,7 +179,7 @@ if __name__ == "__main__":
 
     exists = collections.defaultdict(list)
 
-    for idx, color_f in enumerate(colors_rf):
+    for idx, color_f in enumerate(colors["rf"]):
         id_ = os.path.basename(os.path.dirname(color_f))
         metrics_path = os.path.join(LOG_PATH, f"{id_}_metrics_rf.pt")
         if os.path.exists(metrics_path):
@@ -194,23 +194,18 @@ if __name__ == "__main__":
     y = {}
     y["rf"] = np.array(scores["rf"]["rf"][0])[exists["rf"]]
 
-
     for bt in BLOCK_TYPES:
         avail_methods = AVAIL_METHODS if bt == "gat" else AVAIL_METHODS[:-1]
         avail_methods = avail_methods + ["diff"]
 
         f, axs = plt.subplots(nrows=1, ncols=ncols, figsize=(14, 4))
 
-        colors_bt = np.array(
-            glob(os.path.join(DATA_PATH, "validation_sets", "*", f"colors_{bt}.pt",))
-        )[idxs[bt]["CAM"][0]]
-
-        for color_f in colors_bt:
+        for color_f in colors[bt]:
             id_ = os.path.basename(os.path.dirname(color_f))
 
             with open(os.path.join(LOG_PATH, f"{bt}_{id_}.pt"), "rb") as handle:
                 metrics = dill.load(handle)
-            
+
             all_metrics["rmse_train"][bt].append(metrics["rmse_train"][-1])
             all_metrics["rmse_test"][bt].append(metrics["rmse_test"][-1])
             all_metrics["pcc_train"][bt].append(metrics["pcc_train"][-1])
@@ -221,7 +216,6 @@ if __name__ == "__main__":
         for idx_m, method in enumerate(avail_methods):
             method_name = method if isinstance(method, str) else method.__name__
             y[bt][method_name] = np.array(scores[bt][method_name][0])
-
 
     for bt in BLOCK_TYPES:
         comparison_plot(all_metrics["rmse_train"], y, bt, "Train RMSE")
