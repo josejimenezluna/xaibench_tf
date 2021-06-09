@@ -99,7 +99,7 @@ if __name__ == "__main__":
 
     for bt in BLOCK_TYPES:
         colors[bt] = np.array(
-            glob(os.path.join(DATA_PATH, "validation_sets", "*", f"colors_{bt}.pt",))
+            sorted(glob(os.path.join(DATA_PATH, "validation_sets", "*", f"colors_{bt}.pt",)))
         )[idxs[bt]["CAM"][0]]
 
     # similarities
