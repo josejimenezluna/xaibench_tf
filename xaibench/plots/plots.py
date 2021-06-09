@@ -36,9 +36,8 @@ def comparison_plot(xs, ys, block_type, common_x_label, savename):
 
     f.text(0.5, 0.02, common_x_label, ha="center")
     plt.suptitle(f"Block type: {block_type}")
-    # plt.savefig(os.path.join(FIG_PATH, f"savename_{block_type}.png"), dpi=300)
-    # plt.close()
-    plt.show()
+    plt.savefig(os.path.join(FIG_PATH, f"{savename}_{block_type}.png"), dpi=300)
+    plt.close()
 
 
 if __name__ == "__main__":
@@ -141,7 +140,13 @@ if __name__ == "__main__":
             y[bt][method_name] = np.array(scores[bt][method_name][0])[exists[bt]]
 
     for bt in BLOCK_TYPES:
-        comparison_plot(similarities, y, bt, "Train/test max. Tanimoto similarity")
+        comparison_plot(
+            similarities,
+            y,
+            bt,
+            "Train/test max. Tanimoto similarity",
+            savename="similarity",
+        )
 
     # training set size
     sizes = collections.defaultdict(list)
@@ -173,7 +178,7 @@ if __name__ == "__main__":
             y[bt][method_name] = np.array(scores[bt][method_name][0])[exists[bt]]
 
     for bt in BLOCK_TYPES:
-        comparison_plot(sizes, y, bt, "Number of training samples")
+        comparison_plot(sizes, y, bt, "Number of training samples", savename="sizes")
 
     # performance
     all_metrics = {}
@@ -223,7 +228,13 @@ if __name__ == "__main__":
             y[bt][method_name] = np.array(scores[bt][method_name][0])
 
     for bt in BLOCK_TYPES:
-        comparison_plot(all_metrics["rmse_train"], y, bt, "Train RMSE")
-        comparison_plot(all_metrics["rmse_test"], y, bt, "Test RMSE")
-        comparison_plot(all_metrics["pcc_train"], y, bt, "Train PCC")
-        comparison_plot(all_metrics["pcc_test"], y, bt, "Test PCC")
+        comparison_plot(
+            all_metrics["rmse_train"], y, bt, "Train RMSE", savename="train_rmse"
+        )
+        comparison_plot(
+            all_metrics["rmse_test"], y, bt, "Test RMSE", savename="test_rmse"
+        )
+        comparison_plot(
+            all_metrics["pcc_train"], y, bt, "Train PCC", savename="train_pcc"
+        )
+        comparison_plot(all_metrics["pcc_test"], y, bt, "Test PCC", savename="test_pcc")
