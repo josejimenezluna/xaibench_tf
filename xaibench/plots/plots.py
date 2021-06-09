@@ -12,6 +12,33 @@ from xaibench.determine_col import MIN_PER_COMMON_ATOMS
 from xaibench.score import N_THRESHOLDS
 from xaibench.utils import BLOCK_TYPES, DATA_PATH, FIG_PATH, RESULTS_PATH, LOG_PATH
 
+
+def comparison_plot(xs, ys, block_type, common_x_label, savename):
+    ncols = len(ys)
+    f, axs = plt.subplots(nrows=1, ncols=ncols, figsize=(14, 4))
+    axs[0].scatter(xs["rf"], ys["rf"], s=1.5)
+    axs[0].set_title("Sheridan")
+    axs[0].set_ylabel("Color agreement")
+    axs[0].text(
+        0.35, 0.9, "r={:.3f}".format(np.corrcoef(xs["rf"], ys["rf"])[0, 1])
+    )
+
+    for idx_m, method in enumerate(avail_methods):
+        method_name = method if isinstance(method, str) else method.__name__
+
+        axs[idx_m + 1].scatter(xs[block_type], ys[block_type][method_name], s=1.5)
+        axs[idx_m + 1].set_title(f"{method_name}")
+        axs[idx_m + 1].text(
+            0.35, 0.9, "r={:.3f}".format(np.corrcoef(xs[block_type], ys[block_type][method_name])[0, 1])
+        )
+
+    f.text(0.5, 0.02, common_x_label, ha="center")
+    plt.suptitle(f"Block type: {block_type}")
+    # plt.savefig(os.path.join(FIG_PATH, f"savename_{block_type}.png"), dpi=300)
+    # plt.close()
+    plt.show()
+
+
 if __name__ == "__main__":
     with open(os.path.join(RESULTS_PATH, "scores.pt"), "rb") as handle:
         scores = dill.load(handle)
@@ -63,25 +90,24 @@ if __name__ == "__main__":
     plt.close()
 
     # similarities
-    similarities_rf = []
-    exists_rf = []
+    similarities = collections.defaultdict(list)
+    exists = collections.defaultdict(list)
 
     colors_rf = np.array(scores["rf"])[idxs["rf"]["rf"][0]]
 
     for idx, color_f in enumerate(colors_rf):
         sim_file = os.path.join(os.path.dirname(color_f), "similarity.npy")
         if os.path.exists(sim_file):
-            similarities_rf.append(np.load(sim_file).max())
-            exists_rf.append(idx)
+            similarities["rf"].append(np.load(sim_file).max())
+            exists["rf"].append(idx)
 
-    y_rf = np.array(scores["rf"]["rf"][0])[exists_rf]
+    y = {}
+    y["rf"] = np.array(scores["rf"]["rf"][0])[exists["rf"]]
 
     for bt in BLOCK_TYPES:
         ncols = len(AVAIL_METHODS) + 2 if bt == "gat" else len(AVAIL_METHODS) + 1
 
         f, axs = plt.subplots(nrows=1, ncols=ncols, figsize=(14, 4))
-        similarities = []
-        exists_idx = []
 
         avail_methods = AVAIL_METHODS if bt == "gat" else AVAIL_METHODS[:-1]
         avail_methods = avail_methods + ["diff"]
@@ -93,48 +119,34 @@ if __name__ == "__main__":
         for idx, color_f in enumerate(colors_bt):
             sim_file = os.path.join(os.path.dirname(color_f), "similarity.npy")
             if os.path.exists(sim_file):
-                similarities.append(np.load(sim_file).max())
-                exists_idx.append(idx)
+                similarities[bt].append(np.load(sim_file).max())
+                exists[bt].append(idx)
 
-        axs[0].scatter(similarities_rf, y_rf, s=1.5)
-        axs[0].set_title("Sheridan")
-        axs[0].set_ylabel("Color agreement")
-        axs[0].text(
-            0.35, 0.9, "r={:.3f}".format(np.corrcoef(similarities_rf, y_rf)[0, 1])
-        )
+        y[bt] = {}
 
         for idx_m, method in enumerate(avail_methods):
             method_name = method if isinstance(method, str) else method.__name__
-            y = np.array(scores[bt][method_name][0])[exists_idx]
-            axs[idx_m + 1].scatter(similarities, y, s=1.5)
-            axs[idx_m + 1].set_title(f"{method_name}")
-            axs[idx_m + 1].text(
-                0.35, 0.9, "r={:.3f}".format(np.corrcoef(similarities, y)[0, 1])
-            )
-        f.text(0.5, 0.02, "Training/test max. Tanimoto similarity", ha="center")
-        plt.suptitle(f"Block type: {bt}")
-        plt.savefig(os.path.join(FIG_PATH, f"sim_agreement_bond_{bt}.png"), dpi=300)
-        plt.close()
+            y[bt][method_name] = np.array(scores[bt][method_name][0])[exists[bt]]
+
+
+    for bt in BLOCK_TYPES:
+        comparison_plot(similarities, y, bt, "Train/test max. Tanimoto similarity")
+
 
     # training set size
-    n_rf = []
-    exists_rf = []
+    sizes = collections.defaultdict(list)   
+    exists = collections.defaultdict(list)
 
     for idx, color_f in enumerate(colors_rf):
         train_file = os.path.join(os.path.dirname(color_f), "training.csv")
         if os.path.exists(sim_file):
-            n_rf.append(len(pd.read_csv(train_file)))
-            exists_rf.append(idx)
+            sizes["rf"].append(len(pd.read_csv(train_file)))
+            exists["rf"].append(idx)
 
-    y_rf = np.array(scores["rf"]["rf"][0])[exists_rf]
+    y = {}
+    y["rf"] = np.array(scores["rf"]["rf"][0])[exists["rf"]]
 
     for bt in BLOCK_TYPES:
-        ncols = len(AVAIL_METHODS) + 2 if bt == "gat" else len(AVAIL_METHODS) + 1
-
-        f, axs = plt.subplots(nrows=1, ncols=ncols, figsize=(14, 4))
-        n = []
-        exists_idx = []
-
         avail_methods = AVAIL_METHODS if bt == "gat" else AVAIL_METHODS[:-1]
         avail_methods = avail_methods + ["diff"]
 
@@ -145,35 +157,28 @@ if __name__ == "__main__":
         for idx, color_f in enumerate(colors_bt):
             train_file = os.path.join(os.path.dirname(color_f), "training.csv")
             if os.path.exists(train_file):
-                n.append(len(pd.read_csv(train_file)))
-                exists_idx.append(idx)
+                sizes[bt].append(len(pd.read_csv(train_file)))
+                exists[bt].append(idx)
 
-        axs[0].scatter(n_rf, y_rf, s=1.5)
-        axs[0].set_title("Sheridan")
-        axs[0].set_ylabel("Color agreement")
-        axs[0].text(
-            0.35, 0.9, "r={:.3f}".format(np.corrcoef(n_rf, y_rf)[0, 1])
-        )
+        y[bt] = {}
 
         for idx_m, method in enumerate(avail_methods):
             method_name = method if isinstance(method, str) else method.__name__
-            y = np.array(scores[bt][method_name][0])[exists_idx]
-            axs[idx_m + 1].scatter(n, y, s=1.5)
-            axs[idx_m + 1].set_title(f"{method_name}")
-            axs[idx_m + 1].text(
-                0.35, 0.9, "r={:.3f}".format(np.corrcoef(n, y)[0, 1])
-            )
-        f.text(0.5, 0.02, "Number of training samples", ha="center")
-        plt.suptitle(f"Block type: {bt}")
-        plt.savefig(os.path.join(FIG_PATH, f"n_agreement_bond_{bt}.png"), dpi=300)
-        plt.close()
+            y[bt][method_name] = np.array(scores[bt][method_name][0])[exists[bt]]
+
+    for bt in BLOCK_TYPES:
+        comparison_plot(sizes, y, bt, "Number of training samples")
 
 
     # performance
 
     all_metrics = {}
-    all_metrics["rf"] = collections.defaultdict(list)
-    exists_rf = []
+    all_metrics["rmse_train"] = collections.defaultdict(list)
+    all_metrics["rmse_test"] = collections.defaultdict(list)
+    all_metrics["pcc_train"] = collections.defaultdict(list)
+    all_metrics["pcc_test"] = collections.defaultdict(list)
+
+    exists = collections.defaultdict(list)
 
     for idx, color_f in enumerate(colors_rf):
         id_ = os.path.basename(os.path.dirname(color_f))
@@ -181,35 +186,21 @@ if __name__ == "__main__":
         if os.path.exists(metrics_path):
             with open(metrics_path, "rb") as handle:
                 metrics = dill.load(handle)
-                all_metrics["rf"]["rmse_train"].append(metrics["rmse_train"])
-                all_metrics["rf"]["rmse_test"].append(metrics["rmse_test"])
-                all_metrics["rf"]["pcc_train"].append(metrics["pcc_train"])
-                all_metrics["rf"]["pcc_test"].append(metrics["pcc_test"])
-            exists_rf.append(idx)
+                all_metrics["rmse_train"]["rf"].append(metrics["rmse_train"])
+                all_metrics["rmse_test"]["rf"].append(metrics["rmse_test"])
+                all_metrics["pcc_train"]["rf"].append(metrics["pcc_train"])
+                all_metrics["pcc_test"]["rf"].append(metrics["pcc_test"])
+            exists["rf"].append(idx)
 
-    y_rf = np.array(scores["rf"]["rf"][0])[exists_rf]
+    y = {}
+    y["rf"] = np.array(scores["rf"]["rf"][0])[exists["rf"]]
+
 
     for bt in BLOCK_TYPES:
-        ncols = len(AVAIL_METHODS) + 2 if bt == "gat" else len(AVAIL_METHODS) + 1
         avail_methods = AVAIL_METHODS if bt == "gat" else AVAIL_METHODS[:-1]
         avail_methods = avail_methods + ["diff"]
 
         f, axs = plt.subplots(nrows=1, ncols=ncols, figsize=(14, 4))
-
-        axs[0].scatter(losses_rf, y_rf, s=1.5)
-        axs[0].set_title("Sheridan")
-        axs[0].set_ylabel("Color agreement")
-        axs[0].text(
-            1.0,
-            0.9,
-            "r={:.3f}".format(
-                np.corrcoef(
-                    losses_rf[~np.isnan(losses_rf)], y_rf[~np.isnan(losses_rf)]
-                )[0, 1]
-            ),
-        )
-
-        all_metrics[bt] = collections.defaultdict(list)
 
         colors_bt = np.array(
             glob(os.path.join(DATA_PATH, "validation_sets", "*", f"colors_{bt}.pt",))
@@ -221,24 +212,20 @@ if __name__ == "__main__":
             with open(os.path.join(LOG_PATH, f"{bt}_{id_}.pt"), "rb") as handle:
                 metrics = dill.load(handle)
             
-            all_metrics[bt]["rmse_train"].append(metrics["rmse_train"][-1])
-            all_metrics[bt]["rmse_test"].append(metrics["rmse_test"][-1])
-            all_metrics[bt]["pcc_train"].append(metrics["pcc_train"][-1])
-            all_metrics[bt]["pcc_test"].append(metrics["pcc_test"][-1])
+            all_metrics["rmse_train"][bt].append(metrics["rmse_train"][-1])
+            all_metrics["rmse_test"][bt].append(metrics["rmse_test"][-1])
+            all_metrics["pcc_train"][bt].append(metrics["pcc_train"][-1])
+            all_metrics["pcc_test"][bt].append(metrics["pcc_test"][-1])
+
+        y[bt] = {}
 
         for idx_m, method in enumerate(avail_methods):
             method_name = method if isinstance(method, str) else method.__name__
-            y = np.array(scores[bt][method_name][0])
-            axs[idx_m + 1].scatter(losses, y, s=1.5)
-            axs[idx_m + 1].set_title(f"{method_name}")
-            axs[idx_m + 1].text(
-                3.0,
-                0.9,
-                "r={:.3f}".format(
-                    np.corrcoef(losses[~np.isnan(losses)], y[~np.isnan(losses)])[0, 1]
-                ),
-            )
-        f.text(0.5, 0.02, "Train RMSE", ha="center")
-        plt.suptitle(f"Block type: {bt}")
-        plt.savefig(os.path.join(FIG_PATH, f"perf_agreement_bond_{bt}.png"), dpi=300)
-        plt.close()
+            y[bt][method_name] = np.array(scores[bt][method_name][0])
+
+
+    for bt in BLOCK_TYPES:
+        comparison_plot(all_metrics["rmse_train"], y, bt, "Train RMSE")
+        comparison_plot(all_metrics["rmse_test"], y, bt, "Test RMSE")
+        comparison_plot(all_metrics["pcc_train"], y, bt, "Train PCC")
+        comparison_plot(all_metrics["pcc_test"], y, bt, "Test PCC")
