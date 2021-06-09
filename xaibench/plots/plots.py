@@ -171,7 +171,6 @@ if __name__ == "__main__":
 
 
     # performance
-
     all_metrics = {}
     all_metrics["rmse_train"] = collections.defaultdict(list)
     all_metrics["rmse_test"] = collections.defaultdict(list)
