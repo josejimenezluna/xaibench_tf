@@ -24,7 +24,7 @@ def comparison_plot(xs, ys, block_type, avail_methods, common_x_label, savename)
     axs[0].set_title("Sheridan")
     axs[0].set_ylabel("Color agreement")
     axs[0].text(
-        0.1,
+        0.25,
         0.9,
         "r={:.3f}".format(np.corrcoef(xs["rf"], ys["rf"])[0, 1]),
         va="center",
