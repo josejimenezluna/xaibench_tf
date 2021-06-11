@@ -1,12 +1,9 @@
 import os
 from glob import glob
 
-import collections
 import dill
-import matplotlib
 import numpy as np
 import pandas as pd
-from matplotlib.font_manager import FontProperties
 from rdkit.Chem import MolFromSmiles
 from sklearn.metrics import accuracy_score
 from tqdm import tqdm
@@ -17,8 +14,6 @@ from xaibench.utils import (BLOCK_TYPES, DATA_PATH, FIG_PATH,
                             RESULTS_PATH)
 
 N_THRESHOLDS = len(MIN_PER_COMMON_ATOMS)
-
-matplotlib.use("Agg")
 
 
 def color_agreement(color_true, color_pred, metric_f):
