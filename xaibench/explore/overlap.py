@@ -55,5 +55,5 @@ if __name__ == "__main__":
                 count_common += 1
         common_perc[id_] = count_common / len(inchis_std_pairs)
 
-    with open(os.path.join(RESULTS_PATH, "train_pairs_overlap.pt", "wb")) as handle:
+    with open(os.path.join(RESULTS_PATH, "train_pairs_overlap.pt"), "wb") as handle:
         dill.dump(common_perc, handle)
