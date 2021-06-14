@@ -16,6 +16,10 @@ from xaibench.utils import BLOCK_TYPES, DATA_PATH, FIG_PATH, LOG_PATH, RESULTS_P
 
 matplotlib.use("Agg")
 
+plt.rcParams.update(
+    {"text.usetex": True, "font.family": "sans-serif", "font.sans-serif": ["Helvetica"]}
+)
+
 
 def comparison_plot(xs, ys, block_type, avail_methods, common_x_label, savename):
     ncols = len(avail_methods) + 1
@@ -69,9 +73,20 @@ if __name__ == "__main__":
     num_colors = (len(AVAIL_METHODS) + 2) * len(BLOCK_TYPES)
     ax.set_prop_cycle("color", [cm(i / num_colors) for i in range(num_colors)])
 
-    ax.plot(
-        MIN_PER_COMMON_ATOMS,
-        [np.median(scores["rf"]["rf"][idx_th]) for idx_th in range(N_THRESHOLDS)],
+    ax.errorbar(
+        MIN_PER_COMMON_ATOMS * 100,
+        np.array(
+            [
+                np.median(np.array(scores["rf"]["rf"][idx_th]) * 100) 
+                for idx_th in range(N_THRESHOLDS)
+            ]
+        ),
+        yerr=np.std(
+            [
+                np.std(np.array(scores["rf"]["rf"][idx_th]) * 100)
+                for idx_th in range(N_THRESHOLDS)
+            ]
+        ),
         label="Sheridan",
         marker="o",
     )
@@ -82,15 +97,23 @@ if __name__ == "__main__":
         for method in avail_methods:
             method_name = method if isinstance(method, str) else method.__name__
             medians = [
-                np.median(scores[bt][method_name][idx_th])
+                np.median(np.array(scores[bt][method_name][idx_th]) * 100)
                 for idx_th in range(N_THRESHOLDS)
             ]
-            ax.plot(
-                MIN_PER_COMMON_ATOMS, medians, label=f"{bt}_{method_name}", marker="o"
+            stds = [
+                np.std(np.array(scores[bt][method_name][idx_th]) * 100) 
+                for idx_th in range(N_THRESHOLDS)
+            ]
+            ax.errorbar(
+                MIN_PER_COMMON_ATOMS * 100,
+                medians,
+                yerr=stds,
+                label=f"{bt.upper()} ({method_name})",
+                marker="o",
             )
         ax.grid(True)
-    ax.set_xlabel("MCS percentage common atoms (0-1)")
-    ax.set_ylabel("Color agreement")
+    ax.set_xlabel(r"MCS percentage common atoms (\%)")
+    ax.set_ylabel(r"Color agreement (\%)")
     plt.legend(
         bbox_to_anchor=(1.05, 1),
         loc="upper left",
@@ -100,7 +123,7 @@ if __name__ == "__main__":
     )
     plt.subplots_adjust(right=0.75)
     plt.savefig(
-        os.path.join(FIG_PATH, f"color_agreement_medians_bond.png"), dpi=300,
+        os.path.join(FIG_PATH, f"color_agreement_medians_bond.pdf"), dpi=300,
     )
     plt.close()
 
@@ -292,3 +315,12 @@ if __name__ == "__main__":
             savename="test_pcc",
         )
 
+    # overlap
+    with open(os.path.join(RESULTS_PATH, "train_pairs_overlap.pt"), "rb") as handle:
+        overlap = dill.load(handle)
+
+    plt.hist(overlap.values(), bins=30)
+    plt.xlabel("Fraction of benchmark compounds present in the training sets")
+    plt.ylabel("Count")
+    plt.savefig(os.path.join(FIG_PATH, "overlap.png"))
+    plt.close()
