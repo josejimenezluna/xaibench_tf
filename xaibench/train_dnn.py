@@ -50,8 +50,8 @@ if __name__ == "__main__":
         fps_train, values_train, batch_size=BATCH_SIZE, epochs=N_EPOCHS, workers=N_JOBS
     )
 
-    yhat_train = model.evaluate(fps_train)
-    yhat_test = model.evaluate(fps_test)
+    yhat_train = model.predict(fps_train).squeeze()
+    yhat_test = model.predict(fps_test).squeeze()
 
     metrics = {}
     metrics["rmse_train"] = rmse(values_train, yhat_train)
