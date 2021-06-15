@@ -8,7 +8,7 @@ LOG_PATH = os.path.join(os.path.dirname(os.path.dirname(__file__)), "logs")
 FIG_PATH = os.path.join(os.path.dirname(os.path.dirname(__file__)), "figures")
 RESULTS_PATH = os.path.join(os.path.dirname(os.path.dirname(__file__)), "results")
 
-BLOCK_TYPES = ["gcn", "mpnn", "gat"]
+BLOCK_TYPES = ["graphnet", "gcn", "mpnn", "gat"]
 
 
 def ensure_readability(strings, read_f):
