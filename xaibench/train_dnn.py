@@ -15,7 +15,6 @@ from xaibench.diff_utils import featurize_ecfp4
 from xaibench.train_gnn import SEED, TEST_SET_SIZE, rmse, BATCH_SIZE, N_EPOCHS
 from xaibench.utils import LOG_PATH, MODELS_DNN_PATH
 
-N_TREES = 1000
 N_JOBS = int(os.getenv("LSB_DJOB_NUMPROC", multiprocessing.cpu_count()))
 
 if __name__ == "__main__":
@@ -48,7 +47,9 @@ if __name__ == "__main__":
     model.add(Dense(1))
     model.compile(optimizer="adam", loss="mse", metrics=["mse"])
 
-    model.fit(fps_train, values_train, batch_size=BATCH_SIZE, epochs=N_EPOCHS)
+    model.fit(
+        fps_train, values_train, batch_size=BATCH_SIZE, epochs=N_EPOCHS, workers=N_JOBS
+    )
 
     yhat_train = model.evaluate(fps_train)
     yhat_test = model.evaluate(fps_test)
