@@ -4,6 +4,7 @@ import os
 import dill
 import pandas as pd
 import tensorflow as tf
+from tensorflow.keras.models import load_model as load_keras
 from graph_attribution.experiments import GNN
 from graph_attribution.featurization import MolTensorizer, smiles_to_graphs_tuple
 from graph_attribution.graphnet_models import BlockType
@@ -22,9 +23,9 @@ from joblib import load as load_sklearn
 from tqdm import tqdm
 
 from xaibench.color_utils import get_batch_indices, ig_ref
-from xaibench.diff_utils import diff_gnn, diff_rf
+from xaibench.diff_utils import diff_gnn, diff_mask
 from xaibench.train_gnn import DEVICE, HID_SIZE, N_LAYERS
-from xaibench.utils import DATA_PATH, MODELS_PATH, MODELS_RF_PATH
+from xaibench.utils import DATA_PATH, MODELS_PATH, MODELS_RF_PATH, MODELS_DNN_PATH
 
 AVAIL_METHODS = [IntegratedGradients, GradInput, CAM, GradCAM, AttentionWeights]
 
@@ -110,7 +111,11 @@ if __name__ == "__main__":
 
         if args.block_type == "rf":
             model_rf = load_sklearn(os.path.join(MODELS_RF_PATH, f"{id_}.pt"))
-            colors = color_pairs_diff(pair_df, model=model_rf, diff_fun=diff_rf)
+            colors = color_pairs_diff(pair_df, model=model_rf, diff_fun=diff_mask)
+        elif args.block_type == "dnn":
+            model_dnn = load_keras(os.path.join(MODELS_DNN_PATH, id_))
+            colors = color_pairs_diff(pair_df, model=model_dnn, diff_fun=diff_mask)
+
         else:
             hp = get_hparams(
                 {

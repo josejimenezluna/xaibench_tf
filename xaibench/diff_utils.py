@@ -36,7 +36,7 @@ def featurize_ecfp4(mol, fp_size=FP_SIZE, bond_radius=BOND_RADIUS):
     return arr
 
 
-def diff_rf(
+def diff_mask(
     mol_string,
     model,
     task="regression",
