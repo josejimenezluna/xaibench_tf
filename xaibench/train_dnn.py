@@ -63,7 +63,7 @@ if __name__ == "__main__":
     os.makedirs(MODELS_DNN_PATH, exist_ok=True)
     model.save(
         os.path.join(
-            MODELS_DNN_PATH, f"{os.path.basename(os.path.dirname(args.csv))}.pt"
+            MODELS_DNN_PATH, f"{os.path.basename(os.path.dirname(args.csv))}"
         )
     )
 
