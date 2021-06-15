@@ -5,14 +5,13 @@ import os
 import dill
 import numpy as np
 import pandas as pd
-from tensorflow.keras import Sequential
-from tensorflow.keras.layers import Dense
-from joblib import dump
 from rdkit.Chem import MolFromSmiles
 from sklearn.model_selection import train_test_split
+from tensorflow.keras import Sequential
+from tensorflow.keras.layers import Dense
 
-from xaibench.diff_utils import featurize_ecfp4
-from xaibench.train_gnn import SEED, TEST_SET_SIZE, rmse, BATCH_SIZE, N_EPOCHS
+from xaibench.diff_utils import featurize_ecfp4, FP_SIZE
+from xaibench.train_gnn import BATCH_SIZE, N_EPOCHS, SEED, TEST_SET_SIZE, rmse
 from xaibench.utils import LOG_PATH, MODELS_DNN_PATH
 
 N_JOBS = int(os.getenv("LSB_DJOB_NUMPROC", multiprocessing.cpu_count()))
@@ -41,7 +40,7 @@ if __name__ == "__main__":
     fps_test = np.vstack([featurize_ecfp4(MolFromSmiles(sm)) for sm in smiles_test])
 
     model = Sequential()
-    model.add(Dense(512, input_shape=(1024,), activation="relu"))
+    model.add(Dense(512, input_shape=(FP_SIZE,), activation="relu"))
     model.add(Dense(256, activation="relu"))
     model.add(Dense(128, activation="relu"))
     model.add(Dense(1))

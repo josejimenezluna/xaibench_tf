@@ -8,6 +8,9 @@ from rdkit.Chem import AllChem, DataStructs, MolFromSmiles
 
 from xaibench.train_gnn import DEVICE
 
+FP_SIZE = 1024
+BOND_RADIUS = 2
+
 
 def gen_dummy_atoms(mol, dummy_atom_no=47):
     """
@@ -23,7 +26,7 @@ def gen_dummy_atoms(mol, dummy_atom_no=47):
     return mod_mols
 
 
-def featurize_ecfp4(mol, fp_size=1024, bond_radius=2):
+def featurize_ecfp4(mol, fp_size=FP_SIZE, bond_radius=BOND_RADIUS):
     """
     Gets an ECFP4 fingerprint for a specific rdkit mol. 
     """
