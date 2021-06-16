@@ -137,14 +137,18 @@ if __name__ == "__main__":
     os.makedirs(FIG_PATH, exist_ok=True)
 
     colors_rf = sorted(glob(os.path.join(DATA_PATH, "validation_sets", "*", "colors_rf.pt")))
+    colors_dnn = sorted(glob(os.path.join(DATA_PATH, "validation_sets", "*", "colors_dnn.pt")))
 
     print("Computing scores...")
     scores = {}
     idxs = {}
     scores["rf"] = {}
     idxs["rf"] = {}
+    scores["dnn"] = {}
+    idxs["dnn"] = {}
 
     scores["rf"], idxs["rf"] = method_comparison(colors_rf)
+    scores["dnn"], idxs["dnn"] = method_comparison(colors_dnn)
 
     for bt in BLOCK_TYPES:
         print(f"Now loading block type {bt}...")
