@@ -39,7 +39,7 @@ def featurize_ecfp4(mol, fp_size=FP_SIZE, bond_radius=BOND_RADIUS):
 def diff_mask(
     mol_string,
     model,
-    task="regression",
+    pred_fun,
     fp_size=1024,
     bond_radius=2,
     dummy_atom_no=47,
@@ -51,12 +51,6 @@ def diff_mask(
     """
     mol = mol_read_f(mol_string)
     og_fp = featurize_ecfp4(mol, fp_size, bond_radius)
-
-    pred_fun = (
-        lambda x: model.predict_proba(x)[:, 1]
-        if task == "binary"
-        else model.predict(x)
-    )
 
     og_pred = pred_fun(og_fp[np.newaxis, :])
 

@@ -16,6 +16,16 @@ from xaibench.utils import LOG_PATH, MODELS_DNN_PATH
 
 N_JOBS = int(os.getenv("LSB_DJOB_NUMPROC", multiprocessing.cpu_count()))
 
+def get_fnn(activation=None, loss="mse", metrics="mse", optimizer="adam"):
+    model = Sequential()
+    model.add(Dense(512, input_shape=(FP_SIZE,), activation="relu"))
+    model.add(Dense(256, activation="relu"))
+    model.add(Dense(128, activation="relu"))
+    model.add(Dense(1), activation=activation)
+    model.compile(optimizer=optimizer, loss=loss, metrics=[metrics])
+    return model
+
+
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
     parser.add_argument(
@@ -39,12 +49,7 @@ if __name__ == "__main__":
     fps_train = np.vstack([featurize_ecfp4(MolFromSmiles(sm)) for sm in smiles_train])
     fps_test = np.vstack([featurize_ecfp4(MolFromSmiles(sm)) for sm in smiles_test])
 
-    model = Sequential()
-    model.add(Dense(512, input_shape=(FP_SIZE,), activation="relu"))
-    model.add(Dense(256, activation="relu"))
-    model.add(Dense(128, activation="relu"))
-    model.add(Dense(1))
-    model.compile(optimizer="adam", loss="mse", metrics=["mse"])
+    model = get_fnn()
 
     model.fit(
         fps_train, values_train, batch_size=BATCH_SIZE, epochs=N_EPOCHS, workers=N_JOBS

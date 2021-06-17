@@ -7,9 +7,9 @@ from rdkit.Chem import MolFromSmiles
 from sklearn.ensemble import RandomForestClassifier
 from sklearn.metrics import roc_auc_score
 from tqdm import tqdm
-from xaibench.diff_utils import diff_rf
+from xaibench.diff_utils import diff_mask, featurize_ecfp4
 from xaibench.explore.utils import GADATA_PATH, RFGA_PATH
-from xaibench.train_rf import featurize_ecfp4
+
 
 TEST_SUITES = ["logic7", "logic8", "logic10", "benzene"]
 
@@ -40,7 +40,7 @@ if __name__ == "__main__":
             df["label"].values[test_idxs],
         )
 
-        rf = RandomForestClassifier(n_jobs=11, n_estimators=10000)
+        rf = RandomForestClassifier(n_jobs=-1, n_estimators=10000)
         rf.fit(fps_train, label_train)
 
         pred_test = rf.predict_proba(fps_test)[:, 1]
@@ -52,7 +52,9 @@ if __name__ == "__main__":
         att_pred = []
 
         for sm_test in tqdm(smiles_test):
-            att_pred.append(diff_rf(sm_test, rf, task="binary"))
+            att_pred.append(
+                diff_mask(sm_test, rf, pred_fun=lambda x: model.predict_proba(x)[:, 1])
+            )
 
         att_pred = np.array(att_pred)
 
