@@ -1,18 +1,15 @@
 import os
-import dill
 
+import dill
 import numpy as np
 import pandas as pd
+from rdkit.Chem import MolFromSmiles
 from sklearn.metrics import roc_auc_score
 from tqdm import tqdm
-from rdkit.Chem import MolFromSmiles
-from tensorflow.keras import Sequential
-from tensorflow.keras.layers import Dense
-from xaibench.diff_utils import diff_mask
-from xaibench.explore.utils import GADATA_PATH
-from xaibench.diff_utils import featurize_ecfp4
+from xaibench.diff_utils import diff_mask, featurize_ecfp4
 from xaibench.google.rfgoogle import TEST_SUITES
-from xaibench.train_dnn import get_fnn, N_EPOCHS, BATCH_SIZE
+from xaibench.google.utils import GADATA_PATH, RES_PATH
+from xaibench.train_dnn import BATCH_SIZE, N_EPOCHS, get_fnn
 
 if __name__ == "__main__":
     aucs = {}
@@ -41,7 +38,7 @@ if __name__ == "__main__":
             df["label"].values[test_idxs],
         )
 
-        model = get_fnn(activation="sigmoid", loss="binary_crossentropy", metrics="auc")
+        model = get_fnn(activation="sigmoid", loss="binary_crossentropy", metrics="AUC")
         model.fit(fps_train, label_train, batch_size=BATCH_SIZE, epochs=N_EPOCHS)
 
         pred_test = model.predict(fps_test)
@@ -53,7 +50,9 @@ if __name__ == "__main__":
         att_pred = []
 
         for sm_test in tqdm(smiles_test):
-            att_pred.append(diff_mask(sm_test, model, pred_fun=lambda x: model.predict(x)))
+            att_pred.append(
+                diff_mask(sm_test, pred_fun=lambda x: model.predict(x))
+            )
 
         att_pred = np.array(att_pred)
 
@@ -87,6 +86,6 @@ if __name__ == "__main__":
 
         att_aucs[t_suite] = roc_auc_score(att_true, att_pred)
 
-        os.makedirs(RFGA_PATH, exist_ok=True)
-        with open(os.path.join(RFGA_PATH, "results_dnn.pt"), "wb") as handle:
-            dill.dump([aucs, att_aucs], handle)
+    os.makedirs(RES_PATH, exist_ok=True)
+    with open(os.path.join(RES_PATH, "results_dnn.pt"), "wb") as handle:
+        dill.dump([aucs, att_aucs], handle)

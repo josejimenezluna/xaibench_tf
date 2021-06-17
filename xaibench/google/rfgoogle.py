@@ -8,7 +8,7 @@ from sklearn.ensemble import RandomForestClassifier
 from sklearn.metrics import roc_auc_score
 from tqdm import tqdm
 from xaibench.diff_utils import diff_mask, featurize_ecfp4
-from xaibench.explore.utils import GADATA_PATH, RFGA_PATH
+from xaibench.google.utils import GADATA_PATH, RES_PATH
 
 
 TEST_SUITES = ["logic7", "logic8", "logic10", "benzene"]
@@ -53,7 +53,7 @@ if __name__ == "__main__":
 
         for sm_test in tqdm(smiles_test):
             att_pred.append(
-                diff_mask(sm_test, rf, pred_fun=lambda x: model.predict_proba(x)[:, 1])
+                diff_mask(sm_test, pred_fun=lambda x: rf.predict_proba(x)[:, 1])
             )
 
         att_pred = np.array(att_pred)
@@ -88,6 +88,6 @@ if __name__ == "__main__":
 
         att_aucs[t_suite] = roc_auc_score(att_true, att_pred)
 
-    os.makedirs(RFGA_PATH, exist_ok=True)
-    with open(os.path.join(RFGA_PATH, "results.pt"), "wb") as handle:
+    os.makedirs(RES_PATH, exist_ok=True)
+    with open(os.path.join(RES_PATH, "results_rf.pt"), "wb") as handle:
         dill.dump([aucs, att_aucs], handle)

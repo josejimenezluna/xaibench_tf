@@ -38,7 +38,6 @@ def featurize_ecfp4(mol, fp_size=FP_SIZE, bond_radius=BOND_RADIUS):
 
 def diff_mask(
     mol_string,
-    model,
     pred_fun,
     fp_size=1024,
     bond_radius=2,

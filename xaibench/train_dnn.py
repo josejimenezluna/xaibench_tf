@@ -21,7 +21,7 @@ def get_fnn(activation=None, loss="mse", metrics="mse", optimizer="adam"):
     model.add(Dense(512, input_shape=(FP_SIZE,), activation="relu"))
     model.add(Dense(256, activation="relu"))
     model.add(Dense(128, activation="relu"))
-    model.add(Dense(1), activation=activation)
+    model.add(Dense(1, activation=activation))
     model.compile(optimizer=optimizer, loss=loss, metrics=[metrics])
     return model
 
