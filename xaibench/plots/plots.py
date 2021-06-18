@@ -22,15 +22,27 @@ plt.rcParams.update(
 
 
 def comparison_plot(xs, ys, block_type, avail_methods, common_x_label, savename):
-    ncols = len(avail_methods) + 1
+    ncols = len(avail_methods) + 2  # +2 for sheridan rf, dnn
     f, axs = plt.subplots(nrows=1, ncols=ncols, figsize=(14, 4))
     axs[0].scatter(xs["rf"], ys["rf"], s=1.5)
-    axs[0].set_title("Sheridan")
+    axs[0].set_title("Sheridan (RF)")
     axs[0].set_ylabel("Color agreement")
     axs[0].text(
         0.25,
         0.9,
         "r={:.3f}".format(np.corrcoef(xs["rf"], ys["rf"])[0, 1]),
+        va="center",
+        ha="center",
+        transform=axs[0].transAxes,
+    )
+
+    axs[1].scatter(xs["dnn"], ys["dnn"], s=1.5)
+    axs[1].set_title("Sheridan (DNN)")
+    axs[1].set_ylabel("Color agreement")
+    axs[1].text(
+        0.25,
+        0.9,
+        "r={:.3f}".format(np.corrcoef(xs["dnn"], ys["dnn"])[0, 1]),
         va="center",
         ha="center",
         transform=axs[0].transAxes,
@@ -70,10 +82,10 @@ if __name__ == "__main__":
     fontP = FontProperties()
     fontP.set_size("xx-small")
     cm = plt.get_cmap("tab20b")
-    num_colors = (len(AVAIL_METHODS) + 2) * len(BLOCK_TYPES)
+    num_colors = ((len(AVAIL_METHODS) + 1) * len(BLOCK_TYPES)) + 2
     ax.set_prop_cycle("color", [cm(i / num_colors) for i in range(num_colors)])
 
-    ax.errorbar(
+    ax.plot(
         MIN_PER_COMMON_ATOMS * 100,
         np.array(
             [
@@ -81,13 +93,19 @@ if __name__ == "__main__":
                 for idx_th in range(N_THRESHOLDS)
             ]
         ),
-        yerr=np.std(
+        label="Sheridan (RF)",
+        marker="o",
+    )
+
+    ax.plot(
+        MIN_PER_COMMON_ATOMS * 100,
+        np.array(
             [
-                np.std(np.array(scores["rf"]["rf"][idx_th]) * 100)
+                np.median(np.array(scores["dnn"]["rf"][idx_th]) * 100) 
                 for idx_th in range(N_THRESHOLDS)
             ]
         ),
-        label="Sheridan",
+        label="Sheridan (DNN)",
         marker="o",
     )
 
@@ -100,14 +118,9 @@ if __name__ == "__main__":
                 np.median(np.array(scores[bt][method_name][idx_th]) * 100)
                 for idx_th in range(N_THRESHOLDS)
             ]
-            stds = [
-                np.std(np.array(scores[bt][method_name][idx_th]) * 100) 
-                for idx_th in range(N_THRESHOLDS)
-            ]
-            ax.errorbar(
+            ax.plot(
                 MIN_PER_COMMON_ATOMS * 100,
                 medians,
-                yerr=stds,
                 label=f"{bt.upper()} ({method_name})",
                 marker="o",
             )
@@ -136,6 +149,12 @@ if __name__ == "__main__":
         idxs["rf"]["rf"][0]
     ]  # 0 is at MCS threshold .5
 
+    colors["dnn"] = np.array(
+        sorted(glob(os.path.join(DATA_PATH, "validation_sets", "*", "colors_dnn.pt")))
+    )[
+        idxs["dnn"]["rf"][0]
+    ]  # 0 is at MCS threshold .5
+
     for bt in BLOCK_TYPES:
         colors[bt] = np.array(
             sorted(
@@ -149,14 +168,23 @@ if __name__ == "__main__":
     similarities = collections.defaultdict(list)
     exists = collections.defaultdict(list)
 
+    y = {}
+
     for idx, color_f in enumerate(tqdm(colors["rf"])):
         sim_file = os.path.join(os.path.dirname(color_f), "similarity.npy")
         if os.path.exists(sim_file):
             similarities["rf"].append(np.load(sim_file).mean())
             exists["rf"].append(idx)
 
-    y = {}
     y["rf"] = np.array(scores["rf"]["rf"][0])[exists["rf"]]
+
+    for idx, color_f in enumerate(tqdm(colors["dnn"])):
+        sim_file = os.path.join(os.path.dirname(color_f), "similarity.npy")
+        if os.path.exists(sim_file):
+            similarities["dnn"].append(np.load(sim_file).mean())
+            exists["dnn"].append(idx)
+
+    y["dnn"] = np.array(scores["dnn"]["rf"][0])[exists["dnn"]]
 
     for bt in BLOCK_TYPES:
         ncols = len(AVAIL_METHODS) + 2 if bt == "gat" else len(AVAIL_METHODS) + 1
@@ -193,6 +221,7 @@ if __name__ == "__main__":
     # training set size
     sizes = collections.defaultdict(list)
     exists = collections.defaultdict(list)
+    y = {}
 
     for idx, color_f in enumerate(colors["rf"]):
         train_file = os.path.join(os.path.dirname(color_f), "training.csv")
@@ -200,8 +229,15 @@ if __name__ == "__main__":
             sizes["rf"].append(len(pd.read_csv(train_file)))
             exists["rf"].append(idx)
 
-    y = {}
     y["rf"] = np.array(scores["rf"]["rf"][0])[exists["rf"]]
+
+    for idx, color_f in enumerate(colors["dnn"]):
+        train_file = os.path.join(os.path.dirname(color_f), "training.csv")
+        if os.path.exists(sim_file):
+            sizes["dnn"].append(len(pd.read_csv(train_file)))
+            exists["dnn"].append(idx)
+
+    y["dnn"] = np.array(scores["dnn"]["rf"][0])[exists["dnn"]]
 
     for bt in BLOCK_TYPES:
         avail_methods = AVAIL_METHODS if bt == "gat" else AVAIL_METHODS[:-1]
@@ -240,6 +276,8 @@ if __name__ == "__main__":
 
     exists = collections.defaultdict(list)
 
+    y = {}
+
     for idx, color_f in enumerate(tqdm(colors["rf"])):
         id_ = os.path.basename(os.path.dirname(color_f))
         metrics_path = os.path.join(LOG_PATH, f"{id_}_metrics_rf.pt")
@@ -252,8 +290,19 @@ if __name__ == "__main__":
                 all_metrics["pcc_test"]["rf"].append(metrics["pcc_test"])
             exists["rf"].append(idx)
 
-    y = {}
-    y["rf"] = np.array(scores["rf"]["rf"][0])[exists["rf"]]
+    for idx, color_f in enumerate(tqdm(colors["dnn"])):
+        id_ = os.path.basename(os.path.dirname(color_f))
+        metrics_path = os.path.join(LOG_PATH, f"{id_}_metrics_dnn.pt")
+        if os.path.exists(metrics_path):
+            with open(metrics_path, "rb") as handle:
+                metrics = dill.load(handle)
+                all_metrics["rmse_train"]["dnn"].append(metrics["rmse_train"])
+                all_metrics["rmse_test"]["dnn"].append(metrics["rmse_test"])
+                all_metrics["pcc_train"]["dnn"].append(metrics["pcc_train"])
+                all_metrics["pcc_test"]["dnn"].append(metrics["pcc_test"])
+            exists["dnn"].append(idx)
+
+    y["dnn"] = np.array(scores["dnn"]["rf"][0])[exists["dnn"]]
 
     for bt in BLOCK_TYPES:
         avail_methods = AVAIL_METHODS if bt == "gat" else AVAIL_METHODS[:-1]
