@@ -12,6 +12,7 @@ from xaibench.google.utils import GADATA_PATH, RES_PATH
 
 
 TEST_SUITES = ["logic7", "logic8", "logic10", "benzene"]
+N_TREES = 1000
 
 if __name__ == "__main__":
     aucs = {}
@@ -40,7 +41,7 @@ if __name__ == "__main__":
             df["label"].values[test_idxs],
         )
 
-        rf = RandomForestClassifier(n_jobs=-1, n_estimators=10000)
+        rf = RandomForestClassifier(n_jobs=-1, n_estimators=N_TREES)
         rf.fit(fps_train, label_train)
 
         pred_test = rf.predict_proba(fps_test)[:, 1]
