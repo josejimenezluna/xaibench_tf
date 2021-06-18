@@ -44,7 +44,7 @@ def distribute_bonds(cm, mol):
 
 
 # TODO: this function needs to be refactored
-def method_comparison(colors_path, avail_methods=None, assign_bonds=False):
+def method_comparison(colors_path, other_name=None, avail_methods=None, assign_bonds=False):
     avg_scores = {}
     idx_valid = {}
 
@@ -66,7 +66,7 @@ def method_comparison(colors_path, avail_methods=None, assign_bonds=False):
             ]
             assert len(mols) == len(colors)
 
-        for method in avail_methods if avail_methods is not None else ["rf"]:
+        for method in avail_methods if avail_methods is not None else [other_name]:
             if avail_methods is not None:
                 if method == "diff":
                     method_name = method
@@ -147,8 +147,8 @@ if __name__ == "__main__":
     scores["dnn"] = {}
     idxs["dnn"] = {}
 
-    scores["rf"], idxs["rf"] = method_comparison(colors_rf)
-    scores["dnn"], idxs["dnn"] = method_comparison(colors_dnn)
+    scores["rf"], idxs["rf"] = method_comparison(colors_rf, other_name="rf")
+    scores["dnn"], idxs["dnn"] = method_comparison(colors_dnn, other_name="dnn")
 
     for bt in BLOCK_TYPES:
         print(f"Now loading block type {bt}...")
