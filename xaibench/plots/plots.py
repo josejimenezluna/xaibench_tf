@@ -51,9 +51,9 @@ def comparison_plot(xs, ys, block_type, avail_methods, common_x_label, savename)
     for idx_m, method in enumerate(avail_methods):
         method_name = method if isinstance(method, str) else method.__name__
 
-        axs[idx_m + 1].scatter(xs[block_type], ys[block_type][method_name], s=1.5)
-        axs[idx_m + 1].set_title(f"{method_name}")
-        axs[idx_m + 1].text(
+        axs[idx_m + 2].scatter(xs[block_type], ys[block_type][method_name], s=1.5)
+        axs[idx_m + 2].set_title(f"{method_name}")
+        axs[idx_m + 2].text(
             0.25,
             0.9,
             "r={:.3f}".format(
