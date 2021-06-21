@@ -1,9 +1,11 @@
 import os
 from glob import glob
 
+import numpy as np
 import pandas as pd
 import psycopg2
-from rdkit.Chem import MolFromSmiles
+from rdkit.Chem import MolFromSmiles, MolToInchi
+from rdkit.Chem.MolStandardize.rdMolStandardize import Cleanup
 from tqdm import tqdm
 
 from xaibench.retrieve_bdb_series import DATA_PATH
@@ -73,4 +75,27 @@ if __name__ == "__main__":
         df = retrieve_ligands(conn, tsv)
         if len(df) > MIN_SAMPLES:
             df.to_csv(os.path.join(dirname, "training.csv"), index=None)
+
+        # remove datapoints if present in series
+        inchis_training = [
+            MolToInchi(Cleanup(MolFromSmiles(sm))) for sm in df["canonical_smiles"]
+        ]
+        id_ = os.path.basename(dirname)
+        pairs_csv = pd.read_csv(os.path.join(dirname, "pairs.csv"))
+        smiles_pairs = np.unique(
+            pairs_csv["smiles_i"].to_list() + pairs_csv["smiles_j"].to_list()
+        )
+        inchis_pairs = set(
+            [MolToInchi(Cleanup(MolFromSmiles(sm))) for sm in smiles_pairs]
+        )
+
+        noncommon_idx = []
+        print("Checking whether ligands present in training set...")
+        for idx, inchi_t in enumerate(tqdm(inchis_training)):
+            if inchi_t not in inchis_pairs:
+                noncommon_idx.append(idx)
+
+        df_filtered = df.iloc[noncommon_idx]
+        if len(df_filtered) > MIN_SAMPLES:
+            df_filtered.to_csv(os.path.join(dirname, "training_wo_pairs.csv"), index=None)
 
