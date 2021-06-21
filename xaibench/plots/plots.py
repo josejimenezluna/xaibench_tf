@@ -136,7 +136,7 @@ if __name__ == "__main__":
     )
     plt.subplots_adjust(right=0.75)
     plt.savefig(
-        os.path.join(FIG_PATH, f"color_agreement_medians_bond.pdf"), dpi=300,
+        os.path.join(FIG_PATH, f"color_agreement_medians_bond.png"), dpi=300,
     )
     plt.close()
 
@@ -289,6 +289,8 @@ if __name__ == "__main__":
                 all_metrics["pcc_train"]["rf"].append(metrics["pcc_train"])
                 all_metrics["pcc_test"]["rf"].append(metrics["pcc_test"])
             exists["rf"].append(idx)
+
+    y["rf"] = np.array(scores["rf"]["rf"][0])[exists["rf"]]
 
     for idx, color_f in enumerate(tqdm(colors["dnn"])):
         id_ = os.path.basename(os.path.dirname(color_f))
