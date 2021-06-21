@@ -47,6 +47,9 @@ if __name__ == "__main__":
     parser.add_argument(
         "-block_type", dest="block_type", type=str, required=False, default="gcn"
     )
+    parser.add_argument(
+        "-savename", dest="savename", type=str, default="", required=False
+    )
     args = parser.parse_args()
 
     df = pd.read_csv(args.csv)
@@ -131,16 +134,16 @@ if __name__ == "__main__":
 
             pbar.set_postfix({key: values[-1] for key, values in metrics.items()})
 
-    os.makedirs(os.path.join(MODELS_PATH, f"{args.block_type}_{id_}"), exist_ok=True)
+    os.makedirs(os.path.join(MODELS_PATH, f"{args.block_type}_{id_}{args.savename}"), exist_ok=True)
 
     checkpoint = tf.train.Checkpoint(model)
     checkpoint.save(
         os.path.join(
-            MODELS_PATH, f"{args.block_type}_{id_}", f"{args.block_type}_{id_}"
+            MODELS_PATH, f"{args.block_type}_{id_}", f"{args.block_type}_{id_}{args.savename}"
         )
     )
 
     os.makedirs(LOG_PATH, exist_ok=True)
 
-    with open(os.path.join(LOG_PATH, f"{args.block_type}_{id_}.pt"), "wb") as handle:
+    with open(os.path.join(LOG_PATH, f"{args.block_type}_{id_}{args.savename}.pt"), "wb") as handle:
         dill.dump(metrics, handle)

@@ -22,6 +22,9 @@ if __name__ == "__main__":
     parser.add_argument(
         "-csv", dest="csv", type=str, required=True,
     )
+    parser.add_argument(
+        "-savename", dest="savename", type=str, required=False, default=""
+    )
     args = parser.parse_args()
 
     df = pd.read_csv(args.csv)
@@ -57,14 +60,14 @@ if __name__ == "__main__":
     dump(
         rf,
         os.path.join(
-            MODELS_RF_PATH, f"{os.path.basename(os.path.dirname(args.csv))}.pt"
+            MODELS_RF_PATH, f"{os.path.basename(os.path.dirname(args.csv))}{args.savename}.pt"
         ),
     )
 
     os.makedirs(LOG_PATH, exist_ok=True)
     with open(
         os.path.join(
-            LOG_PATH, f"{os.path.basename(os.path.dirname(args.csv))}_metrics_rf.pt",
+            LOG_PATH, f"{os.path.basename(os.path.dirname(args.csv))}_metrics_rf{args.savename}.pt",
         ),
         "wb",
     ) as handle:

@@ -31,6 +31,9 @@ if __name__ == "__main__":
     parser.add_argument(
         "-csv", dest="csv", type=str, required=True,
     )
+    parser.add_argument(
+        "-savename", dest="savename", type=str, required=False, default=""
+    )
     args = parser.parse_args()
 
     df = pd.read_csv(args.csv)
@@ -68,14 +71,14 @@ if __name__ == "__main__":
     os.makedirs(MODELS_DNN_PATH, exist_ok=True)
     model.save(
         os.path.join(
-            MODELS_DNN_PATH, f"{os.path.basename(os.path.dirname(args.csv))}"
+            MODELS_DNN_PATH, f"{os.path.basename(os.path.dirname(args.csv))}{args.savename}"
         )
     )
 
     os.makedirs(LOG_PATH, exist_ok=True)
     with open(
         os.path.join(
-            LOG_PATH, f"{os.path.basename(os.path.dirname(args.csv))}_metrics_dnn.pt",
+            LOG_PATH, f"{os.path.basename(os.path.dirname(args.csv))}_metrics_dnn{args.savename}.pt",
         ),
         "wb",
     ) as handle:
