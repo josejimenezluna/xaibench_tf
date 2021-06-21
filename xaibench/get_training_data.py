@@ -4,12 +4,15 @@ from glob import glob
 import numpy as np
 import pandas as pd
 import psycopg2
+from rdkit import RDLogger
 from rdkit.Chem import MolFromSmiles, MolToInchi
 from rdkit.Chem.MolStandardize.rdMolStandardize import Cleanup
 from tqdm import tqdm
 
 from xaibench.retrieve_bdb_series import DATA_PATH
 from xaibench.utils import ensure_readability
+
+RDLogger.DisableLog("rdApp.*")
 
 UNIPROT_COL = "UniProt (SwissProt) Primary ID of Target Chain"
 
@@ -91,11 +94,13 @@ if __name__ == "__main__":
 
         noncommon_idx = []
         print("Checking whether ligands present in training set...")
-        for idx, inchi_t in enumerate(tqdm(inchis_training)):
+        for idx, inchi_t in enumerate(inchis_training):
             if inchi_t not in inchis_pairs:
                 noncommon_idx.append(idx)
 
         df_filtered = df.iloc[noncommon_idx]
         if len(df_filtered) > MIN_SAMPLES:
-            df_filtered.to_csv(os.path.join(dirname, "training_wo_pairs.csv"), index=None)
+            df_filtered.to_csv(
+                os.path.join(dirname, "training_wo_pairs.csv"), index=None
+            )
 
