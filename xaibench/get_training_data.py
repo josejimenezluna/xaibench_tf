@@ -79,28 +79,29 @@ if __name__ == "__main__":
         if len(df) > MIN_SAMPLES:
             df.to_csv(os.path.join(dirname, "training.csv"), index=None)
 
-        # remove datapoints if present in series
-        inchis_training = [
-            MolToInchi(Cleanup(MolFromSmiles(sm))) for sm in df["canonical_smiles"]
-        ]
-        id_ = os.path.basename(dirname)
-        pairs_csv = pd.read_csv(os.path.join(dirname, "pairs.csv"))
-        smiles_pairs = np.unique(
-            pairs_csv["smiles_i"].to_list() + pairs_csv["smiles_j"].to_list()
-        )
-        inchis_pairs = set(
-            [MolToInchi(Cleanup(MolFromSmiles(sm))) for sm in smiles_pairs]
-        )
+        bench_csv = os.path.join(dirname, "bench.csv")
 
-        noncommon_idx = []
-        print("Checking whether ligands present in training set...")
-        for idx, inchi_t in enumerate(inchis_training):
-            if inchi_t not in inchis_pairs:
-                noncommon_idx.append(idx)
+        # remove training ligands if present in benchmark series
 
-        df_filtered = df.iloc[noncommon_idx]
-        if len(df_filtered) > MIN_SAMPLES:
-            df_filtered.to_csv(
-                os.path.join(dirname, "training_wo_pairs.csv"), index=None
+        if os.path.exists(bench_csv):
+            inchis_training = [
+                MolToInchi(Cleanup(MolFromSmiles(sm))) for sm in df["canonical_smiles"]
+            ]
+            id_ = os.path.basename(dirname)
+            bench_df = pd.read_csv(bench_csv)
+
+            inchis_bench = set(
+                [MolToInchi(Cleanup(MolFromSmiles(sm))) for sm in bench_df["smiles"]]
             )
+
+            noncommon_idx = []
+            for idx, inchi_t in enumerate(inchis_training):
+                if inchi_t not in inchis_bench:
+                    noncommon_idx.append(idx)
+
+            df_filtered = df.iloc[noncommon_idx]
+            if len(df_filtered) > MIN_SAMPLES:
+                df_filtered.to_csv(
+                    os.path.join(dirname, "training_wo_pairs.csv"), index=None
+                )
 

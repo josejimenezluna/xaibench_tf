@@ -46,6 +46,7 @@ def process_tsv(
     smiles = smiles[idx_below_mw]
     values = values[idx_below_mw]
 
+
     if use_log:
         values = -np.log10(1e-9 * values)
 
@@ -64,6 +65,9 @@ def process_tsv(
                     "diff": [diff_mat[tuple(idx)] for idx in idx_diff],
                 }
             )
+            df_filtered = pd.DataFrame({"smiles": pairs_df["smiles_i"].to_list() + pairs_df["smiles_j"].to_list()})
+            df_filtered.drop_duplicates(inplace=True)
+            df_filtered.to_csv(os.path.join(os.path.dirname(tsv_file), "bench.csv"), index=None)
 
             pairs_df.to_csv(
                 os.path.join(os.path.dirname(tsv_file), "pairs.csv"), index=None
