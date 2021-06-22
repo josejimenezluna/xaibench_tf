@@ -8,21 +8,24 @@ import pandas as pd
 from rdkit.Chem import MolFromSmiles
 from sklearn.model_selection import train_test_split
 from tensorflow.keras import Sequential
+from tensorflow.keras.optimizers import Adam
 from tensorflow.keras.layers import Dense
 
 from xaibench.diff_utils import featurize_ecfp4, FP_SIZE
-from xaibench.train_gnn import BATCH_SIZE, N_EPOCHS, SEED, TEST_SET_SIZE, rmse
+from xaibench.train_gnn import BATCH_SIZE, N_EPOCHS, SEED, TEST_SET_SIZE, rmse, LR
 from xaibench.utils import LOG_PATH, MODELS_DNN_PATH
 
 N_JOBS = int(os.getenv("LSB_DJOB_NUMPROC", multiprocessing.cpu_count()))
 
-def get_fnn(activation=None, loss="mse", metrics="mse", optimizer="adam"):
+
+def get_fnn(activation=None, loss="mse", metrics="mse"):
     model = Sequential()
-    model.add(Dense(512, input_shape=(FP_SIZE,), activation="relu"))
+    model.add(Dense(256, input_shape=(FP_SIZE,), activation="relu"))
     model.add(Dense(256, activation="relu"))
-    model.add(Dense(128, activation="relu"))
+    model.add(Dense(256, activation="relu"))
     model.add(Dense(1, activation=activation))
-    model.compile(optimizer=optimizer, loss=loss, metrics=[metrics])
+    opt = Adam(learning_rate=LR)
+    model.compile(optimizer=opt, loss=loss, metrics=[metrics])
     return model
 
 
@@ -71,14 +74,16 @@ if __name__ == "__main__":
     os.makedirs(MODELS_DNN_PATH, exist_ok=True)
     model.save(
         os.path.join(
-            MODELS_DNN_PATH, f"{os.path.basename(os.path.dirname(args.csv))}{args.savename}"
+            MODELS_DNN_PATH,
+            f"{os.path.basename(os.path.dirname(args.csv))}{args.savename}",
         )
     )
 
     os.makedirs(LOG_PATH, exist_ok=True)
     with open(
         os.path.join(
-            LOG_PATH, f"{os.path.basename(os.path.dirname(args.csv))}_metrics_dnn{args.savename}.pt",
+            LOG_PATH,
+            f"{os.path.basename(os.path.dirname(args.csv))}_metrics_dnn{args.savename}.pt",
         ),
         "wb",
     ) as handle:
