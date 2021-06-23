@@ -139,7 +139,7 @@ if __name__ == "__main__":
     checkpoint = tf.train.Checkpoint(model)
     checkpoint.save(
         os.path.join(
-            MODELS_PATH, f"{args.block_type}_{id_}", f"{args.block_type}_{id_}{args.savename}"
+            MODELS_PATH, f"{args.block_type}_{id_}{args.savename}", f"{args.block_type}_{id_}{args.savename}"
         )
     )
 
