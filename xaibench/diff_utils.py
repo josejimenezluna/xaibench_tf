@@ -51,13 +51,13 @@ def diff_mask(
     mol = mol_read_f(mol_string)
     og_fp = featurize_ecfp4(mol, fp_size, bond_radius)
 
-    og_pred = pred_fun(og_fp[np.newaxis, :])
+    og_pred = pred_fun(og_fp[np.newaxis, :]).squeeze()
 
     mod_mols = gen_dummy_atoms(mol, dummy_atom_no)
 
     mod_fps = [featurize_ecfp4(mol, fp_size, bond_radius) for mol in mod_mols]
     mod_fps = np.vstack(mod_fps)
-    mod_preds = pred_fun(mod_fps)
+    mod_preds = pred_fun(mod_fps).squeeze()
     return og_pred - mod_preds
 
 

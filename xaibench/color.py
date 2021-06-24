@@ -81,8 +81,8 @@ def color_pairs_diff(pair_df, model, diff_fun):
 
     for row in tqdm(pair_df.itertuples(), total=len(pair_df)):
         color_i, color_j = (
-            diff_fun(getattr(row, "smiles_i"), model),
-            diff_fun(getattr(row, "smiles_j"), model),
+            diff_fun(getattr(row, "smiles_i"), model.predict),
+            diff_fun(getattr(row, "smiles_j"), model.predict),
         )
         colors.append((color_i, color_j))
     return colors
