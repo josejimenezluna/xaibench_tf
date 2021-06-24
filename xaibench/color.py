@@ -96,6 +96,9 @@ if __name__ == "__main__":
     parser.add_argument(
         "-block_type", dest="block_type", type=str, required=False, default="gcn"
     )
+    parser.add_argument(
+        "-savename", dest="savename", type=str, required=False, default=""
+    )
     args = parser.parse_args()
 
     ##########
@@ -110,10 +113,10 @@ if __name__ == "__main__":
         pair_df = pd.read_csv(args.pair_f)
 
         if args.block_type == "rf":
-            model_rf = load_sklearn(os.path.join(MODELS_RF_PATH, f"{id_}.pt"))
+            model_rf = load_sklearn(os.path.join(MODELS_RF_PATH, f"{id_}{args.savename}.pt"))
             colors = color_pairs_diff(pair_df, model=model_rf, diff_fun=diff_mask)
         elif args.block_type == "dnn":
-            model_dnn = load_keras(os.path.join(MODELS_DNN_PATH, id_))
+            model_dnn = load_keras(os.path.join(MODELS_DNN_PATH, f"{id_}{args.savename}"))
             colors = color_pairs_diff(pair_df, model=model_dnn, diff_fun=diff_mask)
 
         else:
@@ -156,7 +159,7 @@ if __name__ == "__main__":
 
         with open(
             os.path.join(
-                DATA_PATH, "validation_sets", id_, f"colors_{args.block_type}.pt"
+                DATA_PATH, "validation_sets", id_, f"colors_{args.block_type}{args.savename}.pt"
             ),
             "wb",
         ) as handle:
