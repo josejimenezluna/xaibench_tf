@@ -184,7 +184,7 @@ if __name__ == "__main__":
         )
 
         scores[bt], idxs[bt] = method_comparison(
-            colors_method, avail_methods, assign_bonds=True
+            colors_method, avail_methods=avail_methods, assign_bonds=True
         )
 
     with open(os.path.join(RESULTS_PATH, f"scores{args.savename}.pt"), "wb") as handle:
