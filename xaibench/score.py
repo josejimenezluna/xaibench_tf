@@ -1,4 +1,5 @@
 import os
+import argparse
 from glob import glob
 
 import dill
@@ -10,8 +11,7 @@ from tqdm import tqdm
 
 from xaibench.color import AVAIL_METHODS
 from xaibench.determine_col import MIN_PER_COMMON_ATOMS
-from xaibench.utils import (BLOCK_TYPES, DATA_PATH, FIG_PATH, 
-                            RESULTS_PATH)
+from xaibench.utils import BLOCK_TYPES, DATA_PATH, FIG_PATH, RESULTS_PATH
 
 N_THRESHOLDS = len(MIN_PER_COMMON_ATOMS)
 
@@ -44,7 +44,9 @@ def distribute_bonds(cm, mol):
 
 
 # TODO: this function needs to be refactored
-def method_comparison(colors_path, other_name=None, avail_methods=None, assign_bonds=False):
+def method_comparison(
+    colors_path, other_name=None, avail_methods=None, assign_bonds=False
+):
     avg_scores = {}
     idx_valid = {}
 
@@ -133,11 +135,29 @@ def method_comparison(colors_path, other_name=None, avail_methods=None, assign_b
 
 
 if __name__ == "__main__":
+    parser = argparse.ArgumentParser()
+    parser.add_argument(
+        "-savename", dest="savename", type=str, required=False, default=""
+    )
+    args = parser.parse_args()
+
     os.makedirs(RESULTS_PATH, exist_ok=True)
     os.makedirs(FIG_PATH, exist_ok=True)
 
-    colors_rf = sorted(glob(os.path.join(DATA_PATH, "validation_sets", "*", "colors_rf.pt")))
-    colors_dnn = sorted(glob(os.path.join(DATA_PATH, "validation_sets", "*", "colors_dnn.pt")))
+    colors_rf = sorted(
+        glob(
+            os.path.join(
+                DATA_PATH, "validation_sets", "*", f"colors_rf{args.savename}.pt"
+            )
+        )
+    )
+    colors_dnn = sorted(
+        glob(
+            os.path.join(
+                DATA_PATH, "validation_sets", "*", f"colors_dnn{args.savename}.pt"
+            )
+        )
+    )
 
     print("Computing scores...")
     scores = {}
@@ -153,20 +173,22 @@ if __name__ == "__main__":
     for bt in BLOCK_TYPES:
         print(f"Now loading block type {bt}...")
         avail_methods = AVAIL_METHODS if bt == "gat" else AVAIL_METHODS[:-1]
-        avail_methods = avail_methods + [
-            "diff"
-        ]  # TODO: rewrite this more elegantly
+        avail_methods = avail_methods + ["diff"]  # TODO: rewrite this more elegantly
 
-        colors_method = sorted(glob(
-            os.path.join(DATA_PATH, "validation_sets", "*", f"colors_{bt}.pt",)
-        ))
+        colors_method = sorted(
+            glob(
+                os.path.join(
+                    DATA_PATH, "validation_sets", "*", f"colors_{bt}{args.savename}.pt",
+                )
+            )
+        )
 
         scores[bt], idxs[bt] = method_comparison(
             colors_method, avail_methods, assign_bonds=True
         )
 
-    with open(os.path.join(RESULTS_PATH, "scores.pt"), "wb") as handle:
+    with open(os.path.join(RESULTS_PATH, f"scores{args.savename}.pt"), "wb") as handle:
         dill.dump(scores, handle)
 
-    with open(os.path.join(RESULTS_PATH, "idxs.pt"), "wb") as handle:
+    with open(os.path.join(RESULTS_PATH, f"idxs{args.savename}.pt"), "wb") as handle:
         dill.dump(idxs, handle)

@@ -88,6 +88,11 @@ def color_pairs_diff(pair_df, model, diff_fun):
     return colors
 
 
+def model_not_exists(id_):
+    print(f"Model does not exist. Pairs {id_} most likely does not have training data associated.")
+    return 
+
+
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
     parser.add_argument(
@@ -113,10 +118,17 @@ if __name__ == "__main__":
         pair_df = pd.read_csv(args.pair_f)
 
         if args.block_type == "rf":
-            model_rf = load_sklearn(os.path.join(MODELS_RF_PATH, f"{id_}{args.savename}.pt"))
+            model_path = os.path.join(MODELS_RF_PATH, f"{id_}{args.savename}.pt")
+            if not os.path.exists(model_path):
+                model_not_exists(id_)
+                
+            model_rf = load_sklearn(model_path)
             colors = color_pairs_diff(pair_df, model=model_rf, diff_fun=diff_mask)
         elif args.block_type == "dnn":
-            model_dnn = load_keras(os.path.join(MODELS_DNN_PATH, f"{id_}{args.savename}"))
+            model_path = os.path.join(MODELS_DNN_PATH, f"{id_}{args.savename}")
+            if not os.path.exists(model_path):
+                model_not_exists(id_)
+            model_dnn = load_keras(model_path)
             colors = color_pairs_diff(pair_df, model=model_dnn, diff_fun=diff_mask)
 
         else:
@@ -144,13 +156,14 @@ if __name__ == "__main__":
                     n_layers=hp.n_layers,
                 )
                 checkpoint = tf.train.Checkpoint(model_gnn)
-                checkpoint.restore(
-                    os.path.join(
+                model_path = os.path.join(
                         MODELS_PATH,
                         f"{args.block_type}_{id_}",
                         f"{args.block_type}_{id_}-1",
                     )
-                )
+                if not os.path.join(model_path):
+                    model_not_exists(id_)
+                checkpoint.restore(model_path)
 
             colors = color_pairs(pair_df, model_gnn, block_type=args.block_type)
             colors["diff"] = color_pairs_diff(
