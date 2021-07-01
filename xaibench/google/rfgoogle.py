@@ -12,7 +12,7 @@ from xaibench.google.utils import GADATA_PATH, RES_PATH
 
 
 TEST_SUITES = ["logic7", "logic8", "logic10", "benzene"]
-N_TREES = 1000
+N_TREES = 10000
 
 if __name__ == "__main__":
     aucs = {}

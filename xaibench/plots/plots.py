@@ -71,10 +71,10 @@ def comparison_plot(xs, ys, block_type, avail_methods, common_x_label, savename)
 
 
 if __name__ == "__main__":
-    with open(os.path.join(RESULTS_PATH, "scores.pt"), "rb") as handle:
+    with open(os.path.join(RESULTS_PATH, "scores_wo_pairs.pt"), "rb") as handle:
         scores = dill.load(handle)
 
-    with open(os.path.join(RESULTS_PATH, "idxs.pt"), "rb") as handle:
+    with open(os.path.join(RESULTS_PATH, "idxs_wo_pairs.pt"), "rb") as handle:
         idxs = dill.load(handle)
 
     # median plot
@@ -101,7 +101,7 @@ if __name__ == "__main__":
         MIN_PER_COMMON_ATOMS * 100,
         np.array(
             [
-                np.median(np.array(scores["dnn"]["rf"][idx_th]) * 100) 
+                np.median(np.array(scores["dnn"]["dnn"][idx_th]) * 100) 
                 for idx_th in range(N_THRESHOLDS)
             ]
         ),
@@ -136,7 +136,7 @@ if __name__ == "__main__":
     )
     plt.subplots_adjust(right=0.75)
     plt.savefig(
-        os.path.join(FIG_PATH, f"color_agreement_medians_bond.png"), dpi=300,
+        os.path.join(FIG_PATH, f"color_agreement_medians_bond_wo_pairs.png"), dpi=300,
     )
     plt.close()
 
@@ -144,22 +144,22 @@ if __name__ == "__main__":
 
     colors = {}
     colors["rf"] = np.array(
-        sorted(glob(os.path.join(DATA_PATH, "validation_sets", "*", "colors_rf.pt")))
+        sorted(glob(os.path.join(DATA_PATH, "validation_sets", "*", "colors_rf_wo_pairs.pt")))
     )[
         idxs["rf"]["rf"][0]
     ]  # 0 is at MCS threshold .5
 
     colors["dnn"] = np.array(
-        sorted(glob(os.path.join(DATA_PATH, "validation_sets", "*", "colors_dnn.pt")))
+        sorted(glob(os.path.join(DATA_PATH, "validation_sets", "*", "colors_dnn_wo_pairs.pt")))
     )[
-        idxs["dnn"]["rf"][0]
+        idxs["dnn"]["dnn"][0]
     ]  # 0 is at MCS threshold .5
 
     for bt in BLOCK_TYPES:
         colors[bt] = np.array(
             sorted(
                 glob(
-                    os.path.join(DATA_PATH, "validation_sets", "*", f"colors_{bt}.pt",)
+                    os.path.join(DATA_PATH, "validation_sets", "*", f"colors_{bt}_wo_pairs.pt",)
                 )
             )
         )[idxs[bt]["CAM"][0]]
@@ -184,7 +184,7 @@ if __name__ == "__main__":
             similarities["dnn"].append(np.load(sim_file).mean())
             exists["dnn"].append(idx)
 
-    y["dnn"] = np.array(scores["dnn"]["rf"][0])[exists["dnn"]]
+    y["dnn"] = np.array(scores["dnn"]["dnn"][0])[exists["dnn"]]
 
     for bt in BLOCK_TYPES:
         ncols = len(AVAIL_METHODS) + 2 if bt == "gat" else len(AVAIL_METHODS) + 1
@@ -215,7 +215,7 @@ if __name__ == "__main__":
             block_type=bt,
             avail_methods=avail_methods,
             common_x_label="Train/test mean Tanimoto similarity",
-            savename="similarity",
+            savename="similarity_wo_pairs",
         )
 
     # training set size
@@ -237,7 +237,7 @@ if __name__ == "__main__":
             sizes["dnn"].append(len(pd.read_csv(train_file)))
             exists["dnn"].append(idx)
 
-    y["dnn"] = np.array(scores["dnn"]["rf"][0])[exists["dnn"]]
+    y["dnn"] = np.array(scores["dnn"]["dnn"][0])[exists["dnn"]]
 
     for bt in BLOCK_TYPES:
         avail_methods = AVAIL_METHODS if bt == "gat" else AVAIL_METHODS[:-1]
@@ -264,7 +264,7 @@ if __name__ == "__main__":
             block_type=bt,
             avail_methods=avail_methods,
             common_x_label="Number of training samples",
-            savename="sizes",
+            savename="sizes_wo_pairs",
         )
 
     # performance
@@ -304,7 +304,7 @@ if __name__ == "__main__":
                 all_metrics["pcc_test"]["dnn"].append(metrics["pcc_test"])
             exists["dnn"].append(idx)
 
-    y["dnn"] = np.array(scores["dnn"]["rf"][0])[exists["dnn"]]
+    y["dnn"] = np.array(scores["dnn"]["dnn"][0])[exists["dnn"]]
 
     for bt in BLOCK_TYPES:
         avail_methods = AVAIL_METHODS if bt == "gat" else AVAIL_METHODS[:-1]
@@ -339,7 +339,7 @@ if __name__ == "__main__":
             block_type=bt,
             avail_methods=avail_methods,
             common_x_label="Train RMSE",
-            savename="train_rmse",
+            savename="train_rmse_wo_pairs",
         )
         comparison_plot(
             all_metrics["rmse_test"],
@@ -347,7 +347,7 @@ if __name__ == "__main__":
             block_type=bt,
             avail_methods=avail_methods,
             common_x_label="Test RMSE",
-            savename="test_rmse",
+            savename="test_rmse_wo_pairs",
         )
         comparison_plot(
             all_metrics["pcc_train"],
@@ -355,7 +355,7 @@ if __name__ == "__main__":
             block_type=bt,
             avail_methods=avail_methods,
             common_x_label="Train PCC",
-            savename="train_pcc",
+            savename="train_pcc_wo_pairs",
         )
         comparison_plot(
             all_metrics["pcc_test"],
@@ -363,7 +363,7 @@ if __name__ == "__main__":
             block_type=bt,
             avail_methods=avail_methods,
             common_x_label="Test PCC",
-            savename="test_pcc",
+            savename="test_pcc_wo_pairs",
         )
 
     # overlap
