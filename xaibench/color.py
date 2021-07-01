@@ -158,8 +158,8 @@ if __name__ == "__main__":
                 checkpoint = tf.train.Checkpoint(model_gnn)
                 model_path = os.path.join(
                         MODELS_PATH,
-                        f"{args.block_type}_{id_}",
-                        f"{args.block_type}_{id_}-1",
+                        f"{args.block_type}_{id_}{args.savename}",
+                        f"{args.block_type}_{id_}{args.savename}-1",
                     )
                 if not os.path.join(model_path):
                     model_not_exists(id_)
