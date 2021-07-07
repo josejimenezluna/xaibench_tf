@@ -45,7 +45,7 @@ def comparison_plot(xs, ys, block_type, avail_methods, common_x_label, savename)
         "r={:.3f}".format(np.corrcoef(xs["dnn"], ys["dnn"])[0, 1]),
         va="center",
         ha="center",
-        transform=axs[0].transAxes,
+        transform=axs[1].transAxes,
     )
 
     for idx_m, method in enumerate(avail_methods):
@@ -61,7 +61,7 @@ def comparison_plot(xs, ys, block_type, avail_methods, common_x_label, savename)
             ),
             ha="center",
             va="center",
-            transform=axs[idx_m + 1].transAxes,
+            transform=axs[idx_m + 2].transAxes,
         )
 
     f.text(0.5, 0.02, common_x_label, ha="center")
