@@ -6,7 +6,7 @@ import dill
 import numpy as np
 import pandas as pd
 from rdkit.Chem import MolFromSmiles
-from sklearn.metrics import accuracy_score
+from sklearn.metrics import roc_auc_score
 from tqdm import tqdm
 
 from xaibench.color import AVAIL_METHODS
@@ -109,13 +109,13 @@ def method_comparison(
                             ag_i = color_agreement(
                                 color_pair_true[0],
                                 color_pair_pred[0],
-                                metric_f=accuracy_score,
+                                metric_f=roc_auc_score,
                             )
                             scores.append(ag_i)
                             ag_j = color_agreement(
                                 color_pair_true[1],
                                 color_pair_pred[1],
-                                metric_f=accuracy_score,
+                                metric_f=roc_auc_score,
                             )
                             scores.append(ag_j)
 

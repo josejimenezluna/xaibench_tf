@@ -38,7 +38,6 @@ def comparison_plot(xs, ys, block_type, avail_methods, common_x_label, savename)
 
     axs[1].scatter(xs["dnn"], ys["dnn"], s=1.5)
     axs[1].set_title("Sheridan (DNN)")
-    axs[1].set_ylabel("Color agreement")
     axs[1].text(
         0.25,
         0.9,
