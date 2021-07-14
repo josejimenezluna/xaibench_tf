@@ -26,7 +26,7 @@ def comparison_plot(xs, ys, block_type, avail_methods, common_x_label, savename)
     f, axs = plt.subplots(nrows=1, ncols=ncols, figsize=(14, 4))
     axs[0].scatter(xs["rf"], ys["rf"], s=1.5)
     axs[0].set_title("Sheridan (RF)")
-    axs[0].set_ylabel("Color agreement")
+    axs[0].set_ylabel("Color accuracy")
     axs[0].text(
         0.25,
         0.9,
@@ -70,21 +70,28 @@ def comparison_plot(xs, ys, block_type, avail_methods, common_x_label, savename)
 
 
 if __name__ == "__main__":
-    with open(os.path.join(RESULTS_PATH, "scores_wo_pairs.pt"), "rb") as handle:
+    with open(os.path.join(RESULTS_PATH, "scores.pt"), "rb") as handle:
         scores = dill.load(handle)
 
-    with open(os.path.join(RESULTS_PATH, "idxs_wo_pairs.pt"), "rb") as handle:
+    with open(os.path.join(RESULTS_PATH, "idxs.pt"), "rb") as handle:
         idxs = dill.load(handle)
 
+    with open(os.path.join(RESULTS_PATH, "scores_wo_pairs.pt"), "rb") as handle:
+        scores_wo = dill.load(handle)
+
+    with open(os.path.join(RESULTS_PATH, "idxs_wo_pairs.pt"), "rb") as handle:
+        idxs_wo = dill.load(handle)
+
     # median plot
-    f, ax = plt.subplots(figsize=(8, 8))
+    f, axs = plt.subplots(figsize=(16, 8), nrows=1, ncols=2, sharey=True)
     fontP = FontProperties()
     fontP.set_size("xx-small")
     cm = plt.get_cmap("tab20b")
     num_colors = ((len(AVAIL_METHODS) + 1) * len(BLOCK_TYPES)) + 2
-    ax.set_prop_cycle("color", [cm(i / num_colors) for i in range(num_colors)])
+    axs[0].set_prop_cycle("color", [cm(i / num_colors) for i in range(num_colors)])
+    axs[1].set_prop_cycle("color", [cm(i / num_colors) for i in range(num_colors)])
 
-    ax.plot(
+    axs[0].plot(
         MIN_PER_COMMON_ATOMS * 100,
         np.array(
             [
@@ -96,11 +103,35 @@ if __name__ == "__main__":
         marker="o",
     )
 
-    ax.plot(
+    axs[1].plot(
+        MIN_PER_COMMON_ATOMS * 100,
+        np.array(
+            [
+                np.median(np.array(scores_wo["rf"]["rf"][idx_th]) * 100) 
+                for idx_th in range(N_THRESHOLDS)
+            ]
+        ),
+        label="Sheridan (RF)",
+        marker="o",
+    )
+
+    axs[0].plot(
         MIN_PER_COMMON_ATOMS * 100,
         np.array(
             [
                 np.median(np.array(scores["dnn"]["dnn"][idx_th]) * 100) 
+                for idx_th in range(N_THRESHOLDS)
+            ]
+        ),
+        label="Sheridan (DNN)",
+        marker="o",
+    )
+
+    axs[1].plot(
+        MIN_PER_COMMON_ATOMS * 100,
+        np.array(
+            [
+                np.median(np.array(scores_wo["dnn"]["dnn"][idx_th]) * 100) 
                 for idx_th in range(N_THRESHOLDS)
             ]
         ),
@@ -117,15 +148,26 @@ if __name__ == "__main__":
                 np.median(np.array(scores[bt][method_name][idx_th]) * 100)
                 for idx_th in range(N_THRESHOLDS)
             ]
-            ax.plot(
+            medians_wo = [
+                np.median(np.array(scores_wo[bt][method_name][idx_th]) * 100)
+                for idx_th in range(N_THRESHOLDS)
+            ]
+            axs[0].plot(
                 MIN_PER_COMMON_ATOMS * 100,
                 medians,
                 label=f"{bt.upper()} ({method_name})",
                 marker="o",
             )
-        ax.grid(True)
-    ax.set_xlabel(r"MCS percentage common atoms (\%)")
-    ax.set_ylabel(r"Color agreement (\%)")
+            axs[1].plot(
+                MIN_PER_COMMON_ATOMS * 100,
+                medians_wo,
+                label=f"{bt.upper()} ({method_name})",
+                marker="o",
+            )
+        axs[0].grid(True)
+        axs[1].grid(True)
+    # axs[0].set_xlabel(r"MCS percentage common atoms (\%)")
+    axs[0].set_ylabel(r"Color accuracy (\%)")
     plt.legend(
         bbox_to_anchor=(1.05, 1),
         loc="upper left",
@@ -135,7 +177,7 @@ if __name__ == "__main__":
     )
     plt.subplots_adjust(right=0.75)
     plt.savefig(
-        os.path.join(FIG_PATH, f"color_agreement_medians_bond_wo_pairs.png"), dpi=300,
+        os.path.join(FIG_PATH, f"color.pdf"), dpi=300,
     )
     plt.close()
 
