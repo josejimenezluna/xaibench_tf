@@ -83,11 +83,11 @@ if __name__ == "__main__":
         idxs_wo = dill.load(handle)
 
     # median plot
-    f, axs = plt.subplots(figsize=(16, 8), nrows=1, ncols=2, sharey=True)
+    f, axs = plt.subplots(figsize=(16, 8), nrows=1, ncols=2, sharey=True, tight_layout=True)
     fontP = FontProperties()
-    fontP.set_size("xx-small")
-    cm = plt.get_cmap("tab20b")
-    num_colors = ((len(AVAIL_METHODS) + 1) * len(BLOCK_TYPES)) + 2
+    fontP.set_size("medium")
+    cm = plt.get_cmap("jet")
+    num_colors = ((len(AVAIL_METHODS)) * len(BLOCK_TYPES)) + 3
     axs[0].set_prop_cycle("color", [cm(i / num_colors) for i in range(num_colors)])
     axs[1].set_prop_cycle("color", [cm(i / num_colors) for i in range(num_colors)])
 
@@ -166,18 +166,23 @@ if __name__ == "__main__":
             )
         axs[0].grid(True)
         axs[1].grid(True)
-    # axs[0].set_xlabel(r"MCS percentage common atoms (\%)")
-    axs[0].set_ylabel(r"Color accuracy (\%)")
-    plt.legend(
+    axs[0].set_title(r"Including benchmark pairs in training", fontsize=14)
+    axs[1].set_title(r"Excluding benchmark pairs from training", fontsize=14)
+    axs[0].tick_params(labelsize=14)
+    axs[1].tick_params(labelsize=14)
+    axs[0].set_ylabel(r"Color accuracy (\%)", fontsize=14)
+    xlabel = f.text(0.45, 0.04, r"Minimum shared MCS atoms among pairs (\%)", ha='center', fontsize=14)
+
+    legend = plt.legend(
         bbox_to_anchor=(1.05, 1),
         loc="upper left",
         prop=fontP,
         fancybox=True,
         shadow=True,
     )
-    plt.subplots_adjust(right=0.75)
+    plt.subplots_adjust(right=0.75, top=1.46, bottom=0.95)
     plt.savefig(
-        os.path.join(FIG_PATH, f"color.pdf"), dpi=300,
+        os.path.join(FIG_PATH, f"color.pdf"), dpi=300, bbox_extra_artists=(xlabel, legend,), bbox_inches="tight"
     )
     plt.close()
 
