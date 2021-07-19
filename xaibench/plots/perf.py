@@ -7,7 +7,7 @@ import matplotlib
 import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd
-from xaibench.utils import BLOCK_TYPES, DATA_PATH, FIG_PATH, LOG_PATH
+from xaibench.utils import BLOCK_TYPES, FIG_PATH, LOG_PATH
 from xaibench.plots.desc import BINSIZE
 
 matplotlib.use("Agg")
