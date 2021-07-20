@@ -6,7 +6,7 @@ import dill
 import numpy as np
 import pandas as pd
 from rdkit.Chem import MolFromSmiles
-from sklearn.metrics import accuracy_score
+from sklearn.metrics import accuracy_score, f1_score
 from tqdm import tqdm
 
 from xaibench.color import AVAIL_METHODS
@@ -43,11 +43,11 @@ def distribute_bonds(cm, mol):
     return atom_imp
 
 
-# TODO: this function needs to be refactored
 def method_comparison(
     colors_path, other_name=None, avail_methods=None, assign_bonds=False
 ):
-    avg_scores = {}
+    avg_acc = {}
+    avg_f1 = {}
     idx_valid = {}
 
     for idx, color_method_f in enumerate(tqdm(colors_path)):
@@ -101,37 +101,61 @@ def method_comparison(
                 colors_th = [col[idx_th] for col in colors]
 
                 if sum(1 for _ in filter(None.__ne__, colors_th)) > 0:
-                    scores = []
+                    accs = []
+                    f1s = []
+
                     for color_pair_true, color_pair_pred in zip(
                         colors_th, colors_method
                     ):
                         if color_pair_true is not None:
-                            ag_i = color_agreement(
+                            acc_i = color_agreement(
                                 color_pair_true[0],
                                 color_pair_pred[0],
                                 metric_f=accuracy_score,
                             )
-                            scores.append(ag_i)
-                            ag_j = color_agreement(
+                            accs.append(acc_i)
+                            acc_j = color_agreement(
                                 color_pair_true[1],
                                 color_pair_pred[1],
                                 metric_f=accuracy_score,
                             )
-                            scores.append(ag_j)
+                            accs.append(acc_j)
 
-                    scores = np.array(scores)
-                    scores = scores[
-                        scores >= 0.0
+                            f1_i = color_agreement(
+                                color_pair_true[0],
+                                color_pair_pred[0],
+                                metric_f=f1_score,
+                            )
+                            f1s.append(f1_i)
+
+                            f1_j = color_agreement(
+                                color_pair_true[1],
+                                color_pair_pred[1],
+                                metric_f=f1_score,
+                            )
+                            f1s.append(f1_j)
+
+                    accs = np.array(accs)
+                    accs = accs[
+                        accs >= 0.0
                     ]  # Filter examples with non-common MCS
 
-                    if scores.size > 0:
-                        avg_scores.setdefault(
+                    f1s = np.array(f1s)
+                    f1s = f1s[
+                        f1s >= 0.0
+                    ]
+
+                    if accs.size > 0:
+                        avg_acc.setdefault(
                             method_name, [[] for _ in range(N_THRESHOLDS)]
-                        )[idx_th].append(scores.mean())
+                        )[idx_th].append(accs.mean())
+                        avg_f1.setdefault(
+                            method_name, [[] for _ in range(N_THRESHOLDS)]
+                        )[idx_th].append(f1s.mean())
                         idx_valid.setdefault(
                             method_name, [[] for _ in range(N_THRESHOLDS)]
                         )[idx_th].append(idx)
-    return avg_scores, idx_valid
+    return avg_acc, avg_f1, idx_valid
 
 
 if __name__ == "__main__":
@@ -159,16 +183,20 @@ if __name__ == "__main__":
         )
     )
 
-    print("Computing scores...")
-    scores = {}
+    accs = {}
+    f1s = {}
     idxs = {}
-    scores["rf"] = {}
+
+    accs["rf"] = {}
+    f1s["rf"] = {}
     idxs["rf"] = {}
-    scores["dnn"] = {}
+
+    accs["dnn"] = {}
+    f1s["dnn"] = {}
     idxs["dnn"] = {}
 
-    scores["rf"], idxs["rf"] = method_comparison(colors_rf, other_name="rf")
-    scores["dnn"], idxs["dnn"] = method_comparison(colors_dnn, other_name="dnn")
+    accs["rf"], f1s["rf"], idxs["rf"] = method_comparison(colors_rf, other_name="rf")
+    accs["dnn"], f1s["dnn"], idxs["dnn"] = method_comparison(colors_dnn, other_name="dnn")
 
     for bt in BLOCK_TYPES:
         print(f"Now loading block type {bt}...")
@@ -183,12 +211,15 @@ if __name__ == "__main__":
             )
         )
 
-        scores[bt], idxs[bt] = method_comparison(
+        accs[bt], f1s[bt], idxs[bt] = method_comparison(
             colors_method, avail_methods=avail_methods, assign_bonds=True
         )
 
-    with open(os.path.join(RESULTS_PATH, f"scores{args.savename}.pt"), "wb") as handle:
-        dill.dump(scores, handle)
+    with open(os.path.join(RESULTS_PATH, f"accs{args.savename}.pt"), "wb") as handle:
+        dill.dump(accs, handle)
+
+    with open(os.path.join(RESULTS_PATH, f"f1s{args.savename}.pt"), "wb") as handle:
+        dill.dump(f1s, handle)
 
     with open(os.path.join(RESULTS_PATH, f"idxs{args.savename}.pt"), "wb") as handle:
         dill.dump(idxs, handle)
