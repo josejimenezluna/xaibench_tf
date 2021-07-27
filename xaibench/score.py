@@ -15,6 +15,7 @@ from xaibench.utils import BLOCK_TYPES, DATA_PATH, FIG_PATH, RESULTS_PATH
 
 N_THRESHOLDS = len(MIN_PER_COMMON_ATOMS)
 
+f_score = lambda x, y: f1_score(x, y, zero_division=1)
 
 def color_agreement(color_true, color_pred, metric_f):
     """
@@ -26,6 +27,12 @@ def color_agreement(color_true, color_pred, metric_f):
         return -1.0
     color_true_noncommon = np.array([color_true[idx] for idx in idx_noncommon])
     color_pred_noncommon = np.sign([color_pred[idx] for idx in idx_noncommon])
+
+    # Check that no zeros exists after sign function
+    color_true_noncommon = color_true_noncommon[color_pred_noncommon != 0]
+    color_pred_noncommon = color_pred_noncommon[color_pred_noncommon != 0]
+    if len(color_true_noncommon) == 0:
+        return -1.0
     return metric_f(color_true_noncommon, color_pred_noncommon)
 
 
@@ -124,14 +131,14 @@ def method_comparison(
                             f1_i = color_agreement(
                                 color_pair_true[0],
                                 color_pair_pred[0],
-                                metric_f=f1_score,
+                                metric_f=f_score,
                             )
                             f1s.append(f1_i)
 
                             f1_j = color_agreement(
                                 color_pair_true[1],
                                 color_pair_pred[1],
-                                metric_f=f1_score,
+                                metric_f=f_score,
                             )
                             f1s.append(f1_j)
 
