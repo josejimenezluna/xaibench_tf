@@ -26,7 +26,7 @@ def color_agreement(color_true, color_pred, metric_f):
     if len(idx_noncommon) == 0:
         return -1.0
     color_true_noncommon = np.array([color_true[idx] for idx in idx_noncommon])
-    color_pred_noncommon = np.sign([color_pred[idx] for idx in idx_noncommon])
+    color_pred_noncommon = np.sign([color_pred[idx] for idx in idx_noncommon]).flatten()
 
     # Check that no zeros exists after sign function
     color_true_noncommon = color_true_noncommon[color_pred_noncommon != 0]
