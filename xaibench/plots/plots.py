@@ -70,32 +70,42 @@ def comparison_plot(xs, ys, block_type, avail_methods, common_x_label, savename)
 
 
 if __name__ == "__main__":
-    with open(os.path.join(RESULTS_PATH, "scores.pt"), "rb") as handle:
-        scores = dill.load(handle)
+    with open(os.path.join(RESULTS_PATH, "accs.pt"), "rb") as handle:
+        accs = dill.load(handle)
+
+    with open(os.path.join(RESULTS_PATH, "f1s.pt"), "rb") as handle:
+        f1s = dill.load(handle)
 
     with open(os.path.join(RESULTS_PATH, "idxs.pt"), "rb") as handle:
         idxs = dill.load(handle)
 
-    with open(os.path.join(RESULTS_PATH, "scores_wo_pairs.pt"), "rb") as handle:
-        scores_wo = dill.load(handle)
+    with open(os.path.join(RESULTS_PATH, "accs_wo_pairs.pt"), "rb") as handle:
+        accs_wo = dill.load(handle)
+
+    with open(os.path.join(RESULTS_PATH, "f1s_wo_pairs.pt"), "rb") as handle:
+        f1s_wo = dill.load(handle)
 
     with open(os.path.join(RESULTS_PATH, "idxs_wo_pairs.pt"), "rb") as handle:
         idxs_wo = dill.load(handle)
 
     # median plot
-    f, axs = plt.subplots(figsize=(16, 8), nrows=1, ncols=2, sharey=True, tight_layout=True)
+    f, axs = plt.subplots(figsize=(16, 16), nrows=2, ncols=2, sharey="row", sharex=True, tight_layout=True)
     fontP = FontProperties()
-    fontP.set_size("medium")
+    fontP.set_size(12)
     cm = plt.get_cmap("jet")
     num_colors = ((len(AVAIL_METHODS)) * len(BLOCK_TYPES)) + 3
-    axs[0].set_prop_cycle("color", [cm(i / num_colors) for i in range(num_colors)])
-    axs[1].set_prop_cycle("color", [cm(i / num_colors) for i in range(num_colors)])
+    axs[0, 0].set_prop_cycle("color", [cm(i / num_colors) for i in range(num_colors)])
+    axs[0, 1].set_prop_cycle("color", [cm(i / num_colors) for i in range(num_colors)])
+    axs[1, 0].set_prop_cycle("color", [cm(i / num_colors) for i in range(num_colors)])
+    axs[1, 1].set_prop_cycle("color", [cm(i / num_colors) for i in range(num_colors)])
 
-    axs[0].plot(
+    ## accs rf & dnn
+
+    axs[0, 0].plot(
         MIN_PER_COMMON_ATOMS * 100,
         np.array(
             [
-                np.median(np.array(scores["rf"]["rf"][idx_th]) * 100) 
+                np.median(np.array(accs["rf"]["rf"][idx_th]) * 100) 
                 for idx_th in range(N_THRESHOLDS)
             ]
         ),
@@ -103,11 +113,11 @@ if __name__ == "__main__":
         marker="o",
     )
 
-    axs[1].plot(
+    axs[0, 1].plot(
         MIN_PER_COMMON_ATOMS * 100,
         np.array(
             [
-                np.median(np.array(scores_wo["rf"]["rf"][idx_th]) * 100) 
+                np.median(np.array(accs_wo["rf"]["rf"][idx_th]) * 100) 
                 for idx_th in range(N_THRESHOLDS)
             ]
         ),
@@ -115,11 +125,11 @@ if __name__ == "__main__":
         marker="o",
     )
 
-    axs[0].plot(
+    axs[0, 0].plot(
         MIN_PER_COMMON_ATOMS * 100,
         np.array(
             [
-                np.median(np.array(scores["dnn"]["dnn"][idx_th]) * 100) 
+                np.median(np.array(accs["dnn"]["dnn"][idx_th]) * 100) 
                 for idx_th in range(N_THRESHOLDS)
             ]
         ),
@@ -127,11 +137,61 @@ if __name__ == "__main__":
         marker="o",
     )
 
-    axs[1].plot(
+    axs[0, 1].plot(
         MIN_PER_COMMON_ATOMS * 100,
         np.array(
             [
-                np.median(np.array(scores_wo["dnn"]["dnn"][idx_th]) * 100) 
+                np.median(np.array(accs_wo["dnn"]["dnn"][idx_th]) * 100) 
+                for idx_th in range(N_THRESHOLDS)
+            ]
+        ),
+        label="Sheridan (DNN)",
+        marker="o",
+    )
+
+    ## f1s rf & dnn
+
+    axs[1, 0].plot(
+        MIN_PER_COMMON_ATOMS * 100,
+        np.array(
+            [
+                np.median(np.array(f1s["rf"]["rf"][idx_th]) * 100) 
+                for idx_th in range(N_THRESHOLDS)
+            ]
+        ),
+        label="Sheridan (RF)",
+        marker="o",
+    )
+
+    axs[1, 1].plot(
+        MIN_PER_COMMON_ATOMS * 100,
+        np.array(
+            [
+                np.median(np.array(f1s_wo["rf"]["rf"][idx_th]) * 100) 
+                for idx_th in range(N_THRESHOLDS)
+            ]
+        ),
+        label="Sheridan (RF)",
+        marker="o",
+    )
+
+    axs[1, 0].plot(
+        MIN_PER_COMMON_ATOMS * 100,
+        np.array(
+            [
+                np.median(np.array(f1s["dnn"]["dnn"][idx_th]) * 100) 
+                for idx_th in range(N_THRESHOLDS)
+            ]
+        ),
+        label="Sheridan (DNN)",
+        marker="o",
+    )
+
+    axs[1, 1].plot(
+        MIN_PER_COMMON_ATOMS * 100,
+        np.array(
+            [
+                np.median(np.array(f1s_wo["dnn"]["dnn"][idx_th]) * 100) 
                 for idx_th in range(N_THRESHOLDS)
             ]
         ),
@@ -144,33 +204,60 @@ if __name__ == "__main__":
         avail_methods = avail_methods + ["diff"]
         for method in avail_methods:
             method_name = method if isinstance(method, str) else method.__name__
-            medians = [
-                np.median(np.array(scores[bt][method_name][idx_th]) * 100)
+            medians_acc = [
+                np.median(np.array(accs[bt][method_name][idx_th]) * 100)
                 for idx_th in range(N_THRESHOLDS)
             ]
-            medians_wo = [
-                np.median(np.array(scores_wo[bt][method_name][idx_th]) * 100)
+            medians_acc_wo = [
+                np.median(np.array(accs_wo[bt][method_name][idx_th]) * 100)
                 for idx_th in range(N_THRESHOLDS)
             ]
-            axs[0].plot(
+
+            medians_f1 = [
+                np.median(np.array(f1s[bt][method_name][idx_th]) * 100)
+                for idx_th in range(N_THRESHOLDS)
+            ]
+            medians_f1_wo = [
+                np.median(np.array(f1s_wo[bt][method_name][idx_th]) * 100)
+                for idx_th in range(N_THRESHOLDS)
+            ]
+
+            axs[0, 0].plot(
                 MIN_PER_COMMON_ATOMS * 100,
-                medians,
+                medians_acc,
                 label=f"{bt.upper()} ({method_name})",
                 marker="o",
             )
-            axs[1].plot(
+            axs[0, 1].plot(
                 MIN_PER_COMMON_ATOMS * 100,
-                medians_wo,
+                medians_acc_wo,
                 label=f"{bt.upper()} ({method_name})",
                 marker="o",
             )
-        axs[0].grid(True)
-        axs[1].grid(True)
-    axs[0].set_title(r"Including benchmark pairs in training", fontsize=14)
-    axs[1].set_title(r"Excluding benchmark pairs from training", fontsize=14)
-    axs[0].tick_params(labelsize=14)
-    axs[1].tick_params(labelsize=14)
-    axs[0].set_ylabel(r"Color accuracy (\%)", fontsize=14)
+            axs[1, 0].plot(
+                MIN_PER_COMMON_ATOMS * 100,
+                medians_f1,
+                label=f"{bt.upper()} ({method_name})",
+                marker="o",
+            )
+            axs[1, 1].plot(
+                MIN_PER_COMMON_ATOMS * 100,
+                medians_f1_wo,
+                label=f"{bt.upper()} ({method_name})",
+                marker="o",
+            )
+        axs[0, 0].grid(True)
+        axs[0, 1].grid(True)
+        axs[1, 0].grid(True)
+        axs[1, 1].grid(True)
+    axs[0, 0].set_title(r"Including benchmark pairs in training", fontsize=14)
+    axs[0, 1].set_title(r"Excluding benchmark pairs from training", fontsize=14)
+    axs[0, 0].tick_params(labelsize=14)
+    axs[0, 1].tick_params(labelsize=14)
+    axs[1, 0].tick_params(labelsize=14)
+    axs[1, 1].tick_params(labelsize=14)
+    axs[0, 0].set_ylabel(r"Color accuracy (\%)", fontsize=14)
+    axs[1, 0].set_ylabel(r"Color F1-score (\%)", fontsize=14)
     xlabel = f.text(0.45, 0.04, r"Minimum shared MCS atoms among pairs (\%)", ha='center', fontsize=14)
 
     legend = plt.legend(
@@ -180,9 +267,9 @@ if __name__ == "__main__":
         fancybox=True,
         shadow=True,
     )
-    plt.subplots_adjust(right=0.75, top=1.46, bottom=0.95)
+    plt.subplots_adjust(right=0.75, top=1.57, bottom=0.95)
     plt.savefig(
-        os.path.join(FIG_PATH, f"color.pdf"), dpi=300, bbox_extra_artists=(xlabel, legend,), bbox_inches="tight"
+        os.path.join(FIG_PATH, f"color.svg"), dpi=300, bbox_extra_artists=(xlabel, legend,), bbox_inches="tight"
     )
     plt.close()
 
