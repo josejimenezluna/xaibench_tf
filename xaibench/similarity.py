@@ -76,9 +76,18 @@ if __name__ == "__main__":
 
     id_ = os.path.basename(os.path.dirname(args.pair_f))
     training_f = os.path.join(DATA_PATH, "validation_sets", f"{id_}", "training.csv")
+    training_f_wo = os.path.join(DATA_PATH, "validation_sets", f"{id_}", "training_wo_pairs.csv")
 
-    sim_matrix = sim_pair_train(args.pair_f, training_f)
-    np.save(
-        os.path.join(DATA_PATH, "validation_sets", f"{id_}", "similarity.npy"),
-        arr=sim_matrix,
-    )
+    if os.path.exists(training_f):
+        sim = sim_pair_train(args.pair_f, training_f)
+        np.save(
+            os.path.join(DATA_PATH, "validation_sets", f"{id_}", "similarity.npy"),
+            arr=sim,
+        )
+    
+    if os.path.exists(training_f_wo):
+        sim_wo = sim_pair_train(args.pair_f, training_f_wo)
+        np.save(
+            os.path.join(DATA_PATH, "validation_sets", f"{id_}", "similarity_wo_pairs.npy"),
+            arr=sim_wo,
+        )
