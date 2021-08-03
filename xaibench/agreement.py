@@ -9,7 +9,7 @@ from tqdm import tqdm
 
 from xaibench.color import AVAIL_METHODS
 from xaibench.score import distribute_bonds
-from xaibench.utils import DATA_PATH
+from xaibench.utils import DATA_PATH, RESULTS_PATH
 
 
 def method_agreement(color_all, metric_f):
@@ -37,6 +37,8 @@ def method_agreement(color_all, metric_f):
 
 if __name__ == "__main__":
     ids = os.listdir(os.path.join(DATA_PATH, "validation_sets"))
+
+    ags = []
 
     for id_ in tqdm(ids):
         dirname = os.path.join(DATA_PATH, "validation_sets", id_)
@@ -135,4 +137,9 @@ if __name__ == "__main__":
             agreement = method_agreement(
                 color_all, metric_f=lambda x, y: spearmanr(x, y).correlation
             )
+            ags.append(agreement)
+
+    
+    with open(os.path.join(RESULTS_PATH, "method_agreement.pt"),"wb") as handle:
+        dill.dump(ags, handle)
 
