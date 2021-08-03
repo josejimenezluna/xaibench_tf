@@ -42,11 +42,6 @@ if __name__ == "__main__":
 
     for id_ in tqdm(ids):
         dirname = os.path.join(DATA_PATH, "validation_sets", id_)
-        pair_df = pd.read_csv(os.path.join(dirname, "pairs.csv"))
-        mols = [
-            (MolFromSmiles(mi), MolFromSmiles(mj))
-            for mi, mj in zip(pair_df["smiles_i"], pair_df["smiles_j"])
-        ]
         color_gcn = os.path.join(dirname, "colors_gcn.pt")
         color_mpnn = os.path.join(dirname, "colors_mpnn.pt")
         color_gat = os.path.join(dirname, "colors_gat.pt")
@@ -67,6 +62,12 @@ if __name__ == "__main__":
                 ]
             ]
         ):
+            pair_df = pd.read_csv(os.path.join(dirname, "pairs.csv"))
+            mols = [
+                (MolFromSmiles(mi), MolFromSmiles(mj))
+                for mi, mj in zip(pair_df["smiles_i"], pair_df["smiles_j"])
+            ]
+
             with open(color_gcn, "rb") as handle:
                 color_gcn = dill.load(handle)
 
