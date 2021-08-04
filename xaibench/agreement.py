@@ -38,7 +38,8 @@ def method_agreement(color_all, metric_f):
 if __name__ == "__main__":
     ids = os.listdir(os.path.join(DATA_PATH, "validation_sets"))
 
-    ags = []
+    ags = np.zeros((23, 23), dtype=np.float32)
+    counter_div = 0
 
     for id_ in tqdm(ids):
         dirname = os.path.join(DATA_PATH, "validation_sets", id_)
@@ -62,6 +63,7 @@ if __name__ == "__main__":
                 ]
             ]
         ):
+            counter_div += 1
             pair_df = pd.read_csv(os.path.join(dirname, "pairs.csv"))
             mols = [
                 (MolFromSmiles(mi), MolFromSmiles(mj))
@@ -138,9 +140,9 @@ if __name__ == "__main__":
             agreement = method_agreement(
                 color_all, metric_f=lambda x, y: spearmanr(x, y).correlation
             )
-            ags.append(agreement)
+            ags += agreement
 
-    
+    ags /= counter_div
     with open(os.path.join(RESULTS_PATH, "method_agreement.pt"),"wb") as handle:
         dill.dump(ags, handle)
 
