@@ -36,10 +36,12 @@ def color_agreement(color_true, color_pred, metric_f):
     return metric_f(color_true_noncommon, color_pred_noncommon)
 
 
-def distribute_bonds(cm, mol):
+def distribute_bonds(cm, mol, read_f=None):
     """
     Distributes bond importances evenly across their connecting nodes.
     """
+    if read_f is not None:
+        mol = read_f(mol)
     atom_imp = cm.nodes.numpy()
     bond_imp = np.array([b for idx, b in enumerate(cm.edges.numpy()) if idx % 2 == 0])
 
