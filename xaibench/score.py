@@ -33,9 +33,9 @@ def color_agreement(color_true, color_pred, metric_f):
         [color_pred[idx] for idx in idx_noncommon]
     ).flatten()
     color_pred_noncommon[color_pred_noncommon == 0] += np.random.uniform(
-        low=-EPS_ZERO, high=EPS_ZERO
+        low=-EPS_ZERO, high=EPS_ZERO, size=np.sum(color_pred_noncommon == 0)
     )  # fix: assign small random value to exactly zero-signed preds.
-    color_pred_noncommon = np.sign([color_pred[idx] for idx in idx_noncommon])
+    color_pred_noncommon = np.sign(color_pred_noncommon)
     return metric_f(color_true_noncommon, color_pred_noncommon)
 
 
