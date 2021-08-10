@@ -21,6 +21,9 @@ plt.rcParams.update(
 )
 
 
+THRESHOLD_IDX = 0
+
+
 def comparison_plot(xs, ys, block_type, avail_methods, common_x_label, savename):
     ncols = len(avail_methods) + 2  # +2 for sheridan rf, dnn
     f, axs = plt.subplots(nrows=1, ncols=ncols, figsize=(14, 4))
@@ -287,6 +290,7 @@ if __name__ == "__main__":
     ## Common variables for other plots
 
     colors = {}
+
     colors["rf"] = np.array(
         sorted(
             glob(
@@ -294,7 +298,7 @@ if __name__ == "__main__":
             )
         )
     )[
-        idxs_wo["rf"]["rf"][0]
+        idxs_wo["rf"]["rf"][THRESHOLD_IDX]
     ]  # 0 is at MCS threshold .5
 
     colors["dnn"] = np.array(
@@ -306,7 +310,7 @@ if __name__ == "__main__":
             )
         )
     )[
-        idxs_wo["dnn"]["dnn"][0]
+        idxs_wo["dnn"]["dnn"][THRESHOLD_IDX]
     ]  # 0 is at MCS threshold .5
 
     for bt in BLOCK_TYPES:
@@ -318,7 +322,9 @@ if __name__ == "__main__":
                     )
                 )
             )
-        )[idxs_wo[bt]["CAM"][0]] # CAM or other GNN-based method is the same. 0 is at MCS threshold .5
+        )[
+            idxs_wo[bt]["CAM"][THRESHOLD_IDX]
+        ]  # CAM or other GNN-based method is the same. 0 is at MCS threshold .5
 
     # similarities
     similarities = collections.defaultdict(list)

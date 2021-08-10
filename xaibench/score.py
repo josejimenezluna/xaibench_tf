@@ -201,7 +201,9 @@ if __name__ == "__main__":
     idxs = {}
     sizes = {}
 
-    accs["rf"], f1s["rf"], idxs["rf"], sizes["rf"] = method_comparison(colors_rf, other_name="rf")
+    accs["rf"], f1s["rf"], idxs["rf"], sizes["rf"] = method_comparison(
+        colors_rf, other_name="rf"
+    )
     accs["dnn"], f1s["dnn"], idxs["dnn"], sizes["dnn"] = method_comparison(
         colors_dnn, other_name="dnn"
     )
