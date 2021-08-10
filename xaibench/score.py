@@ -61,6 +61,7 @@ def method_comparison(
     avg_acc = {}
     avg_f1 = {}
     idx_valid = {}
+    sizes_valid = {}
 
     for idx, color_method_f in enumerate(tqdm(colors_path)):
         dirname = os.path.dirname(color_method_f)
@@ -164,7 +165,10 @@ def method_comparison(
                         idx_valid.setdefault(
                             method_name, [[] for _ in range(N_THRESHOLDS)]
                         )[idx_th].append(idx)
-    return avg_acc, avg_f1, idx_valid
+                        sizes_valid.setdefault(
+                            method_name, [[] for _ in range(N_THRESHOLDS)]
+                        )[idx_th].append(len(accs))
+    return avg_acc, avg_f1, idx_valid, sizes_valid
 
 
 if __name__ == "__main__":
@@ -195,17 +199,10 @@ if __name__ == "__main__":
     accs = {}
     f1s = {}
     idxs = {}
+    sizes = {}
 
-    accs["rf"] = {}
-    f1s["rf"] = {}
-    idxs["rf"] = {}
-
-    accs["dnn"] = {}
-    f1s["dnn"] = {}
-    idxs["dnn"] = {}
-
-    accs["rf"], f1s["rf"], idxs["rf"] = method_comparison(colors_rf, other_name="rf")
-    accs["dnn"], f1s["dnn"], idxs["dnn"] = method_comparison(
+    accs["rf"], f1s["rf"], idxs["rf"], sizes["rf"] = method_comparison(colors_rf, other_name="rf")
+    accs["dnn"], f1s["dnn"], idxs["dnn"], sizes["dnn"] = method_comparison(
         colors_dnn, other_name="dnn"
     )
 
@@ -222,7 +219,7 @@ if __name__ == "__main__":
             )
         )
 
-        accs[bt], f1s[bt], idxs[bt] = method_comparison(
+        accs[bt], f1s[bt], idxs[bt], sizes[bt] = method_comparison(
             colors_method, avail_methods=avail_methods, assign_bonds=True
         )
 
@@ -234,3 +231,6 @@ if __name__ == "__main__":
 
     with open(os.path.join(RESULTS_PATH, f"idxs{args.savename}.pt"), "wb") as handle:
         dill.dump(idxs, handle)
+
+    with open(os.path.join(RESULTS_PATH, f"sizes{args.savename}.pt"), "wb") as handle:
+        dill.dump(sizes, handle)
