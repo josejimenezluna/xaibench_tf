@@ -89,7 +89,9 @@ if __name__ == "__main__":
         idxs_wo = dill.load(handle)
 
     # median plot
-    f, axs = plt.subplots(figsize=(16, 16), nrows=2, ncols=2, sharey="row", sharex=True, tight_layout=True)
+    f, axs = plt.subplots(
+        figsize=(16, 16), nrows=2, ncols=2, sharey="row", sharex=True, tight_layout=True
+    )
     fontP = FontProperties()
     fontP.set_size(12)
     cm = plt.get_cmap("jet")
@@ -105,7 +107,7 @@ if __name__ == "__main__":
         MIN_PER_COMMON_ATOMS * 100,
         np.array(
             [
-                np.median(np.array(accs["rf"]["rf"][idx_th]) * 100) 
+                np.median(np.array(accs["rf"]["rf"][idx_th]) * 100)
                 for idx_th in range(N_THRESHOLDS)
             ]
         ),
@@ -117,7 +119,7 @@ if __name__ == "__main__":
         MIN_PER_COMMON_ATOMS * 100,
         np.array(
             [
-                np.median(np.array(accs_wo["rf"]["rf"][idx_th]) * 100) 
+                np.median(np.array(accs_wo["rf"]["rf"][idx_th]) * 100)
                 for idx_th in range(N_THRESHOLDS)
             ]
         ),
@@ -129,7 +131,7 @@ if __name__ == "__main__":
         MIN_PER_COMMON_ATOMS * 100,
         np.array(
             [
-                np.median(np.array(accs["dnn"]["dnn"][idx_th]) * 100) 
+                np.median(np.array(accs["dnn"]["dnn"][idx_th]) * 100)
                 for idx_th in range(N_THRESHOLDS)
             ]
         ),
@@ -141,7 +143,7 @@ if __name__ == "__main__":
         MIN_PER_COMMON_ATOMS * 100,
         np.array(
             [
-                np.median(np.array(accs_wo["dnn"]["dnn"][idx_th]) * 100) 
+                np.median(np.array(accs_wo["dnn"]["dnn"][idx_th]) * 100)
                 for idx_th in range(N_THRESHOLDS)
             ]
         ),
@@ -155,7 +157,7 @@ if __name__ == "__main__":
         MIN_PER_COMMON_ATOMS * 100,
         np.array(
             [
-                np.median(np.array(f1s["rf"]["rf"][idx_th]) * 100) 
+                np.median(np.array(f1s["rf"]["rf"][idx_th]) * 100)
                 for idx_th in range(N_THRESHOLDS)
             ]
         ),
@@ -167,7 +169,7 @@ if __name__ == "__main__":
         MIN_PER_COMMON_ATOMS * 100,
         np.array(
             [
-                np.median(np.array(f1s_wo["rf"]["rf"][idx_th]) * 100) 
+                np.median(np.array(f1s_wo["rf"]["rf"][idx_th]) * 100)
                 for idx_th in range(N_THRESHOLDS)
             ]
         ),
@@ -179,7 +181,7 @@ if __name__ == "__main__":
         MIN_PER_COMMON_ATOMS * 100,
         np.array(
             [
-                np.median(np.array(f1s["dnn"]["dnn"][idx_th]) * 100) 
+                np.median(np.array(f1s["dnn"]["dnn"][idx_th]) * 100)
                 for idx_th in range(N_THRESHOLDS)
             ]
         ),
@@ -191,7 +193,7 @@ if __name__ == "__main__":
         MIN_PER_COMMON_ATOMS * 100,
         np.array(
             [
-                np.median(np.array(f1s_wo["dnn"]["dnn"][idx_th]) * 100) 
+                np.median(np.array(f1s_wo["dnn"]["dnn"][idx_th]) * 100)
                 for idx_th in range(N_THRESHOLDS)
             ]
         ),
@@ -258,7 +260,13 @@ if __name__ == "__main__":
     axs[1, 1].tick_params(labelsize=14)
     axs[0, 0].set_ylabel(r"Color accuracy (\%)", fontsize=14)
     axs[1, 0].set_ylabel(r"Color F1-score (\%)", fontsize=14)
-    xlabel = f.text(0.45, 0.04, r"Minimum shared MCS atoms among pairs (\%)", ha='center', fontsize=14)
+    xlabel = f.text(
+        0.45,
+        0.04,
+        r"Minimum shared MCS atoms among pairs (\%)",
+        ha="center",
+        fontsize=14,
+    )
 
     legend = plt.legend(
         bbox_to_anchor=(1.05, 1),
@@ -269,7 +277,10 @@ if __name__ == "__main__":
     )
     plt.subplots_adjust(right=0.75, top=1.57, bottom=0.95)
     plt.savefig(
-        os.path.join(FIG_PATH, f"color.svg"), dpi=300, bbox_extra_artists=(xlabel, legend,), bbox_inches="tight"
+        os.path.join(FIG_PATH, f"color.svg"),
+        dpi=300,
+        bbox_extra_artists=(xlabel, legend,),
+        bbox_inches="tight",
     )
     plt.close()
 
@@ -277,13 +288,23 @@ if __name__ == "__main__":
 
     colors = {}
     colors["rf"] = np.array(
-        sorted(glob(os.path.join(DATA_PATH, "validation_sets", "*", "colors_rf_wo_pairs.pt")))
+        sorted(
+            glob(
+                os.path.join(DATA_PATH, "validation_sets", "*", "colors_rf_wo_pairs.pt")
+            )
+        )
     )[
         idxs["rf"]["rf"][0]
     ]  # 0 is at MCS threshold .5
 
     colors["dnn"] = np.array(
-        sorted(glob(os.path.join(DATA_PATH, "validation_sets", "*", "colors_dnn_wo_pairs.pt")))
+        sorted(
+            glob(
+                os.path.join(
+                    DATA_PATH, "validation_sets", "*", "colors_dnn_wo_pairs.pt"
+                )
+            )
+        )
     )[
         idxs["dnn"]["dnn"][0]
     ]  # 0 is at MCS threshold .5
@@ -292,7 +313,9 @@ if __name__ == "__main__":
         colors[bt] = np.array(
             sorted(
                 glob(
-                    os.path.join(DATA_PATH, "validation_sets", "*", f"colors_{bt}_wo_pairs.pt",)
+                    os.path.join(
+                        DATA_PATH, "validation_sets", "*", f"colors_{bt}_wo_pairs.pt",
+                    )
                 )
             )
         )[idxs[bt]["CAM"][0]]

@@ -100,7 +100,7 @@ def parallel_wrapper(id_):
             if method_name == "AttentionWeights":
                 gat_method = color_gat[method_name]
 
-                color_all["gat" + f" ({method_name})"] = [
+                color_all["gat".upper() + f" ({method_name})"] = [
                     (
                         distribute_bonds(cm_pair[0], mol_pair[0], read_f=MolFromSmiles),
                         distribute_bonds(cm_pair[1], mol_pair[1], read_f=MolFromSmiles),
