@@ -17,6 +17,9 @@ N_THRESHOLDS = len(MIN_PER_COMMON_ATOMS)
 
 f_score = lambda x, y: f1_score(x, y, zero_division=1)
 
+EPS_ZERO = 1e-8
+
+
 def color_agreement(color_true, color_pred, metric_f):
     """
     Checks agreement between true and predicted colors.
@@ -26,13 +29,13 @@ def color_agreement(color_true, color_pred, metric_f):
     if len(idx_noncommon) == 0:
         return -1.0
     color_true_noncommon = np.array([color_true[idx] for idx in idx_noncommon])
-    color_pred_noncommon = np.sign([color_pred[idx] for idx in idx_noncommon]).flatten()
-
-    # Check that no zeros exists after sign function
-    color_true_noncommon = color_true_noncommon[color_pred_noncommon != 0]
-    color_pred_noncommon = color_pred_noncommon[color_pred_noncommon != 0]
-    if len(color_true_noncommon) == 0:
-        return -1.0
+    color_pred_noncommon = np.array(
+        [color_pred[idx] for idx in idx_noncommon]
+    ).flatten()
+    color_pred_noncommon[color_pred_noncommon == 0] += np.random.uniform(
+        low=-EPS_ZERO, high=EPS_ZERO
+    )  # fix: assign small random value to exactly zero-signed preds.
+    color_pred_noncommon = np.sign([color_pred[idx] for idx in idx_noncommon])
     return metric_f(color_true_noncommon, color_pred_noncommon)
 
 
@@ -123,6 +126,7 @@ def method_comparison(
                                 metric_f=accuracy_score,
                             )
                             accs.append(acc_i)
+
                             acc_j = color_agreement(
                                 color_pair_true[1],
                                 color_pair_pred[1],
@@ -145,14 +149,10 @@ def method_comparison(
                             f1s.append(f1_j)
 
                     accs = np.array(accs)
-                    accs = accs[
-                        accs >= 0.0
-                    ]  # Filter examples with non-common MCS
+                    accs = accs[accs >= 0.0]  # Filter examples with non-common MCS
 
                     f1s = np.array(f1s)
-                    f1s = f1s[
-                        f1s >= 0.0
-                    ]
+                    f1s = f1s[f1s >= 0.0]
 
                     if accs.size > 0:
                         avg_acc.setdefault(
@@ -205,7 +205,9 @@ if __name__ == "__main__":
     idxs["dnn"] = {}
 
     accs["rf"], f1s["rf"], idxs["rf"] = method_comparison(colors_rf, other_name="rf")
-    accs["dnn"], f1s["dnn"], idxs["dnn"] = method_comparison(colors_dnn, other_name="dnn")
+    accs["dnn"], f1s["dnn"], idxs["dnn"] = method_comparison(
+        colors_dnn, other_name="dnn"
+    )
 
     for bt in BLOCK_TYPES:
         print(f"Now loading block type {bt}...")

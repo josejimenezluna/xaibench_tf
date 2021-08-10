@@ -294,7 +294,7 @@ if __name__ == "__main__":
             )
         )
     )[
-        idxs["rf"]["rf"][0]
+        idxs_wo["rf"]["rf"][0]
     ]  # 0 is at MCS threshold .5
 
     colors["dnn"] = np.array(
@@ -306,7 +306,7 @@ if __name__ == "__main__":
             )
         )
     )[
-        idxs["dnn"]["dnn"][0]
+        idxs_wo["dnn"]["dnn"][0]
     ]  # 0 is at MCS threshold .5
 
     for bt in BLOCK_TYPES:
@@ -318,7 +318,7 @@ if __name__ == "__main__":
                     )
                 )
             )
-        )[idxs[bt]["CAM"][0]]
+        )[idxs_wo[bt]["CAM"][0]] # CAM or other GNN-based method is the same. 0 is at MCS threshold .5
 
     # similarities
     similarities = collections.defaultdict(list)
@@ -327,22 +327,23 @@ if __name__ == "__main__":
     y = {}
 
     for idx, color_f in enumerate(tqdm(colors["rf"])):
-        sim_file = os.path.join(os.path.dirname(color_f), "similarity.npy")
+        sim_file = os.path.join(os.path.dirname(color_f), "similarity_wo_pairs.npy")
         if os.path.exists(sim_file):
             similarities["rf"].append(np.load(sim_file).mean())
             exists["rf"].append(idx)
 
-    y["rf"] = np.array(scores["rf"]["rf"][0])[exists["rf"]]
+    y["rf"] = np.array(accs_wo["rf"]["rf"][0])[exists["rf"]]
 
     for idx, color_f in enumerate(tqdm(colors["dnn"])):
-        sim_file = os.path.join(os.path.dirname(color_f), "similarity.npy")
+        sim_file = os.path.join(os.path.dirname(color_f), "similarity_wo_pairs.npy")
         if os.path.exists(sim_file):
             similarities["dnn"].append(np.load(sim_file).mean())
             exists["dnn"].append(idx)
 
-    y["dnn"] = np.array(scores["dnn"]["dnn"][0])[exists["dnn"]]
+    y["dnn"] = np.array(accs_wo["dnn"]["dnn"][0])[exists["dnn"]]
 
     for bt in BLOCK_TYPES:
+        print(bt)
         ncols = len(AVAIL_METHODS) + 2 if bt == "gat" else len(AVAIL_METHODS) + 1
 
         f, axs = plt.subplots(nrows=1, ncols=ncols, figsize=(14, 4))
@@ -351,7 +352,7 @@ if __name__ == "__main__":
         avail_methods = avail_methods + ["diff"]
 
         for idx, color_f in enumerate(tqdm(colors[bt])):
-            sim_file = os.path.join(os.path.dirname(color_f), "similarity.npy")
+            sim_file = os.path.join(os.path.dirname(color_f), "similarity_wo_pairs.npy")
             if os.path.exists(sim_file):
                 similarities[bt].append(np.load(sim_file).mean())
                 exists[bt].append(idx)
@@ -360,7 +361,7 @@ if __name__ == "__main__":
 
         for idx_m, method in enumerate(avail_methods):
             method_name = method if isinstance(method, str) else method.__name__
-            y[bt][method_name] = np.array(scores[bt][method_name][0])[exists[bt]]
+            y[bt][method_name] = np.array(accs_wo[bt][method_name][0])[exists[bt]]
 
     for bt in BLOCK_TYPES:
         avail_methods = AVAIL_METHODS if bt == "gat" else AVAIL_METHODS[:-1]
