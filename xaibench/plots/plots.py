@@ -27,27 +27,29 @@ THRESHOLD_IDX = 0
 def comparison_plot(xs, ys, block_type, avail_methods, common_x_label, savename):
     ncols = len(avail_methods) + 2  # +2 for sheridan rf, dnn
     f, axs = plt.subplots(nrows=1, ncols=ncols, figsize=(14, 4))
-    axs[0].scatter(xs["rf"], ys["rf"], s=1.5)
-    axs[0].set_title("Sheridan (RF)")
-    axs[0].set_ylabel("Color accuracy")
+    axs[0].scatter(xs["rf"], ys["rf"] * 100, s=1.5)
+    axs[0].set_title(r"Sheridan (RF)")
+    axs[0].set_ylabel(r"Color accuracy (\%)")
     axs[0].text(
-        0.25,
+        0.3,
         0.9,
-        "r={:.3f}".format(np.corrcoef(xs["rf"], ys["rf"])[0, 1]),
+        "PCC={:.3f}".format(np.corrcoef(xs["rf"], ys["rf"])[0, 1]),
         va="center",
         ha="center",
         transform=axs[0].transAxes,
+        bbox={'facecolor': 'skyblue', 'alpha': 0.9, 'pad': 5}
     )
 
     axs[1].scatter(xs["dnn"], ys["dnn"], s=1.5)
     axs[1].set_title("Sheridan (DNN)")
     axs[1].text(
-        0.25,
+        0.3,
         0.9,
-        "r={:.3f}".format(np.corrcoef(xs["dnn"], ys["dnn"])[0, 1]),
+        "PCC={:.3f}".format(np.corrcoef(xs["dnn"], ys["dnn"] * 100)[0, 1]),
         va="center",
         ha="center",
         transform=axs[1].transAxes,
+        bbox={'facecolor': 'skyblue', 'alpha': 0.9, 'pad': 5}
     )
 
     for idx_m, method in enumerate(avail_methods):
@@ -56,19 +58,21 @@ def comparison_plot(xs, ys, block_type, avail_methods, common_x_label, savename)
         axs[idx_m + 2].scatter(xs[block_type], ys[block_type][method_name], s=1.5)
         axs[idx_m + 2].set_title(f"{method_name}")
         axs[idx_m + 2].text(
-            0.25,
+            0.3,
             0.9,
-            "r={:.3f}".format(
-                np.corrcoef(xs[block_type], ys[block_type][method_name])[0, 1]
+            "PCC={:.3f}".format(
+                np.corrcoef(xs[block_type], ys[block_type][method_name] * 100)[0, 1]
             ),
             ha="center",
             va="center",
             transform=axs[idx_m + 2].transAxes,
+            bbox={'facecolor': 'skyblue', 'alpha': 0.9, 'pad': 5}
         )
 
-    f.text(0.5, 0.02, common_x_label, ha="center")
-    plt.suptitle(f"Block type: {block_type}")
-    plt.savefig(os.path.join(FIG_PATH, f"{savename}_{block_type}.png"), dpi=300)
+    f.text(0.5, 0.01, common_x_label, ha="center")
+    # plt.suptitle(f"Block type: {block_type}")
+    plt.tight_layout()
+    plt.savefig(os.path.join(FIG_PATH, f"{savename}_{block_type}.pdf"), dpi=300)
     plt.close()
 
 
@@ -377,7 +381,7 @@ if __name__ == "__main__":
             y,
             block_type=bt,
             avail_methods=avail_methods,
-            common_x_label="Train/test mean Tanimoto similarity",
+            common_x_label="Average Tanimoto similarity between training and benchmark molecules",
             savename="similarity_wo_pairs",
         )
 
@@ -392,7 +396,7 @@ if __name__ == "__main__":
             sizes["rf"].append(len(pd.read_csv(train_file)))
             exists["rf"].append(idx)
 
-    y["rf"] = np.array(scores["rf"]["rf"][0])[exists["rf"]]
+    y["rf"] = np.array(accs_wo["rf"]["rf"][0])[exists["rf"]]
 
     for idx, color_f in enumerate(colors["dnn"]):
         train_file = os.path.join(os.path.dirname(color_f), "training.csv")
@@ -400,7 +404,7 @@ if __name__ == "__main__":
             sizes["dnn"].append(len(pd.read_csv(train_file)))
             exists["dnn"].append(idx)
 
-    y["dnn"] = np.array(scores["dnn"]["dnn"][0])[exists["dnn"]]
+    y["dnn"] = np.array(accs_wo["dnn"]["dnn"][0])[exists["dnn"]]
 
     for bt in BLOCK_TYPES:
         avail_methods = AVAIL_METHODS if bt == "gat" else AVAIL_METHODS[:-1]
@@ -416,7 +420,7 @@ if __name__ == "__main__":
 
         for idx_m, method in enumerate(tqdm(avail_methods)):
             method_name = method if isinstance(method, str) else method.__name__
-            y[bt][method_name] = np.array(scores[bt][method_name][0])[exists[bt]]
+            y[bt][method_name] = np.array(accs_wo[bt][method_name][0])[exists[bt]]
 
     for bt in BLOCK_TYPES:
         avail_methods = AVAIL_METHODS if bt == "gat" else AVAIL_METHODS[:-1]
@@ -453,7 +457,7 @@ if __name__ == "__main__":
                 all_metrics["pcc_test"]["rf"].append(metrics["pcc_test"])
             exists["rf"].append(idx)
 
-    y["rf"] = np.array(scores["rf"]["rf"][0])[exists["rf"]]
+    y["rf"] = np.array(accs_wo["rf"]["rf"][0])[exists["rf"]]
 
     for idx, color_f in enumerate(tqdm(colors["dnn"])):
         id_ = os.path.basename(os.path.dirname(color_f))
@@ -467,7 +471,7 @@ if __name__ == "__main__":
                 all_metrics["pcc_test"]["dnn"].append(metrics["pcc_test"])
             exists["dnn"].append(idx)
 
-    y["dnn"] = np.array(scores["dnn"]["dnn"][0])[exists["dnn"]]
+    y["dnn"] = np.array(accs_wo["dnn"]["dnn"][0])[exists["dnn"]]
 
     for bt in BLOCK_TYPES:
         avail_methods = AVAIL_METHODS if bt == "gat" else AVAIL_METHODS[:-1]
@@ -490,7 +494,7 @@ if __name__ == "__main__":
 
         for idx_m, method in enumerate(avail_methods):
             method_name = method if isinstance(method, str) else method.__name__
-            y[bt][method_name] = np.array(scores[bt][method_name][0])
+            y[bt][method_name] = np.array(accs_wo[bt][method_name][0])
 
     for bt in BLOCK_TYPES:
         avail_methods = AVAIL_METHODS if bt == "gat" else AVAIL_METHODS[:-1]
