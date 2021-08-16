@@ -2,12 +2,13 @@ import os
 
 import numpy as np
 import pandas as pd
-from rdkit.Chem import MolFromSmiles
+from rdkit.Chem import MolFromSmiles, MolToInchi, MolFromInchi, MolToSmiles
 from rdkit.Chem.Descriptors import MolWt
+from rdkit.Chem.MolStandardize.rdMolStandardize import Cleanup
 from tqdm import tqdm
 
 from xaibench.retrieve_bdb_series import SET_PATH
-from xaibench.utils import ensure_readability
+from xaibench.utils import ensure_readability, translate
 
 MW_THR = 800
 MIN_P_DIFF = 1.0
@@ -40,12 +41,19 @@ def process_tsv(
     smiles = df[ligcol].values
     values = df[affcol].values.astype(np.float32)
 
+    inchis = [MolToInchi(Cleanup(MolFromSmiles(lig))) for lig in smiles]
+    inchis, idx_unique = np.unique(inchis, return_index=True)
+    values = values[idx_unique]
+
+    smiles, idx_trans = translate(inchis, MolFromInchi, MolToSmiles)
+    values = values[idx_trans]
+    smiles = np.array(smiles)
+
     mws = np.array([MolWt(MolFromSmiles(lig)) for lig in smiles])
     idx_below_mw = np.argwhere(mws <= mw_thr).flatten()
 
     smiles = smiles[idx_below_mw]
     values = values[idx_below_mw]
-
 
     if use_log:
         values = -np.log10(1e-9 * values)

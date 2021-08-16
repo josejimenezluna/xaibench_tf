@@ -5,12 +5,12 @@ import numpy as np
 import pandas as pd
 import psycopg2
 from rdkit import RDLogger
-from rdkit.Chem import MolFromSmiles, MolToInchi
+from rdkit.Chem import MolFromSmiles, MolToInchi, MolToSmiles, MolFromInchi
 from rdkit.Chem.MolStandardize.rdMolStandardize import Cleanup
 from tqdm import tqdm
 
 from xaibench.retrieve_bdb_series import DATA_PATH
-from xaibench.utils import ensure_readability
+from xaibench.utils import ensure_readability, translate
 
 RDLogger.DisableLog("rdApp.*")
 
@@ -65,8 +65,30 @@ def retrieve_ligands(conn, tsv):
     ]
 
     valid_idx = ensure_readability(records["canonical_smiles"].to_list(), MolFromSmiles)
-    records = records.iloc[valid_idx]
-    return records[["canonical_smiles", "pchembl_value"]]
+    training_df = records.iloc[valid_idx]
+    inchis = []
+    idx_suc = []
+
+    for idx, sm in enumerate(training_df["canonical_smiles"].to_list()):
+        mol = Cleanup(MolFromSmiles(sm))
+        if mol is not None:
+            inchis.append(MolToInchi(mol))
+            idx_suc.append(idx)
+
+    values = training_df["pchembl_value"].iloc[idx_suc].to_list()
+
+    df_inchis = pd.DataFrame({"inchis": inchis, "pchembl_value": values})
+    records = df_inchis.groupby(["inchis"], as_index=False)[
+        "pchembl_value"
+    ].mean()
+
+    smiles, idx_trans = translate(records["inchis"], MolFromInchi, MolToSmiles)
+    values = records["pchembl_value"].iloc[idx_trans].to_list()
+
+    train_clean = pd.DataFrame(
+        {"canonical_smiles": smiles, "pchembl_value": values}
+    )
+    return train_clean
 
 
 if __name__ == "__main__":
@@ -81,27 +103,19 @@ if __name__ == "__main__":
 
         bench_csv = os.path.join(dirname, "bench.csv")
 
-        # remove training ligands if present in benchmark series
-
         if os.path.exists(bench_csv):
-            inchis_training = [
-                MolToInchi(Cleanup(MolFromSmiles(sm))) for sm in df["canonical_smiles"]
-            ]
-            id_ = os.path.basename(dirname)
             bench_df = pd.read_csv(bench_csv)
+            bench_sm = set(bench_df["smiles"].to_list())
+            idx_notinbench = []
+            for idx, sm_train in enumerate(
+                df["canonical_smiles"].to_list()
+            ):
+                if sm_train not in bench_sm:
+                    idx_notinbench.append(idx)
 
-            inchis_bench = set(
-                [MolToInchi(Cleanup(MolFromSmiles(sm))) for sm in bench_df["smiles"]]
-            )
-
-            noncommon_idx = []
-            for idx, inchi_t in enumerate(inchis_training):
-                if inchi_t not in inchis_bench:
-                    noncommon_idx.append(idx)
-
-            df_filtered = df.iloc[noncommon_idx]
-            if len(df_filtered) > MIN_SAMPLES:
-                df_filtered.to_csv(
+            train_wo = df.iloc[idx_notinbench]
+            if len(train_wo) > MIN_SAMPLES:
+                train_wo.to_csv(
                     os.path.join(dirname, "training_wo_pairs.csv"), index=None
                 )
 

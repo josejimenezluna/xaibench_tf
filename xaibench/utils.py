@@ -18,3 +18,17 @@ def ensure_readability(strings, read_f):
         if mol is not None:
             valid_idx.append(idx)
     return valid_idx
+
+
+def translate(strings_, fromfun, tofun):
+    trans = []
+    idx_success = []
+    for idx, s in enumerate(strings_):
+        try:
+            mol = fromfun(s)
+            if mol is not None:
+                trans.append(tofun(mol))
+                idx_success.append(idx)
+        except:
+            continue
+    return trans, idx_success
