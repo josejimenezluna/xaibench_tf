@@ -37,16 +37,23 @@ def process_tsv(
     ok_read_idx = ensure_readability(df[ligcol].to_list(), MolFromSmiles)
 
     df = df.iloc[ok_read_idx]
-
-    smiles = df[ligcol].values
     values = df[affcol].values.astype(np.float32)
 
-    inchis = [MolToInchi(Cleanup(MolFromSmiles(lig))) for lig in smiles]
-    inchis, idx_unique = np.unique(inchis, return_index=True)
-    values = values[idx_unique]
+    inchis = []
+    idx_suc = []
+    for idx, sm in enumerate(df[ligcol]):
+        mol = Cleanup(MolFromSmiles(sm))
+        if mol is not None:
+            inchis.append(MolToInchi(mol))
+            idx_suc.append(idx)
 
-    smiles, idx_trans = translate(inchis, MolFromInchi, MolToSmiles)
-    values = values[idx_trans]
+    values = values[idx_suc]
+
+    df_clean = pd.DataFrame({"inchis": inchis, "values": values})
+    df_clean = df_clean.groupby(["inchis"], as_index=False)["values"].mean()
+
+    smiles, idx_trans = translate(df_clean["inchis"], MolFromInchi, MolToSmiles)
+    values = df_clean["values"].iloc[idx_trans].values
     smiles = np.array(smiles)
 
     mws = np.array([MolWt(MolFromSmiles(lig)) for lig in smiles])
