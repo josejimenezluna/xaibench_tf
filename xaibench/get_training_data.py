@@ -97,25 +97,26 @@ if __name__ == "__main__":
 
     for tsv in tqdm(tsvs):
         dirname = os.path.dirname(tsv)
-        df = retrieve_ligands(conn, tsv)
-        if len(df) > MIN_SAMPLES:
-            df.to_csv(os.path.join(dirname, "training.csv"), index=None)
-
         bench_csv = os.path.join(dirname, "bench.csv")
+        colors_pt = os.path.join(dirname, "colors.pt")
+        bench_df = pd.read_csv(bench_csv)
 
-        if os.path.exists(bench_csv):
-            bench_df = pd.read_csv(bench_csv)
-            bench_sm = set(bench_df["smiles"].to_list())
-            idx_notinbench = []
-            for idx, sm_train in enumerate(
-                df["canonical_smiles"].to_list()
-            ):
-                if sm_train not in bench_sm:
-                    idx_notinbench.append(idx)
+        if os.path.exists(bench_csv) and os.path.exists(colors_pt):
+            df = retrieve_ligands(conn, tsv)
+            if len(df) > MIN_SAMPLES:
+                df.to_csv(os.path.join(dirname, "training.csv"), index=None)
 
-            train_wo = df.iloc[idx_notinbench]
-            if len(train_wo) > MIN_SAMPLES:
-                train_wo.to_csv(
-                    os.path.join(dirname, "training_wo_pairs.csv"), index=None
-                )
+                bench_sm = set(bench_df["smiles"].to_list())
+                idx_notinbench = []
+                for idx, sm_train in enumerate(
+                    df["canonical_smiles"].to_list()
+                ):
+                    if sm_train not in bench_sm:
+                        idx_notinbench.append(idx)
+
+                train_wo = df.iloc[idx_notinbench]
+                if len(train_wo) > MIN_SAMPLES:
+                    train_wo.to_csv(
+                        os.path.join(dirname, "training_wo_pairs.csv"), index=None
+                    )
 
