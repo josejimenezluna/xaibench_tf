@@ -1,8 +1,10 @@
 import multiprocessing
 import os
+import argparse
 
 import dill
 import numpy as np
+from numpy.lib.npyio import save
 import pandas as pd
 from joblib import Parallel, delayed
 from rdkit.Chem import MolFromSmiles
@@ -38,14 +40,14 @@ def method_agreement(color_all, metric_f):
     return agreement
 
 
-def parallel_wrapper(id_):
+def parallel_wrapper(id_, savename):
     dirname = os.path.join(DATA_PATH, "validation_sets", id_)
-    color_gcn = os.path.join(dirname, "colors_gcn.pt")
-    color_mpnn = os.path.join(dirname, "colors_mpnn.pt")
-    color_gat = os.path.join(dirname, "colors_gat.pt")
-    color_graphnet = os.path.join(dirname, "colors_graphnet.pt")
-    color_rf = os.path.join(dirname, "colors_rf.pt")
-    color_dnn = os.path.join(dirname, "colors_dnn.pt")
+    color_gcn = os.path.join(dirname, f"colors_gcn{savename}.pt")
+    color_mpnn = os.path.join(dirname, f"colors_mpnn{savename}.pt")
+    color_gat = os.path.join(dirname, f"colors_gat{savename}.pt")
+    color_graphnet = os.path.join(dirname, f"colors_graphnet{savename}.pt")
+    color_rf = os.path.join(dirname, f"colors_rf{savename}.pt")
+    color_dnn = os.path.join(dirname, f"colors_dnn{savename}.pt")
 
     if all(
         [
@@ -138,12 +140,18 @@ def parallel_wrapper(id_):
 
 
 if __name__ == "__main__":
+    parser = argparse.ArgumentParser()
+    parser.add_argument(
+        "-savename", dest="savename", type=str, required=False, default=""
+    )
+    args = parser.parse_args()
+
     ids = os.listdir(os.path.join(DATA_PATH, "validation_sets"))
 
     ags = Parallel(n_jobs=N_JOBS, verbose=11, backend="multiprocessing", batch_size=1)(
-        delayed(parallel_wrapper)(id_) for id_ in ids
+        delayed(parallel_wrapper)(id_, args.savename) for id_ in ids
     )
 
-    with open(os.path.join(RESULTS_PATH, "method_agreement.pt"), "wb") as handle:
+    with open(os.path.join(RESULTS_PATH, f"method_agreement{args.savename}.pt"), "wb") as handle:
         dill.dump(ags, handle)
 
