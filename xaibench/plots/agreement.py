@@ -43,5 +43,5 @@ if __name__ == "__main__":
         cbar.ax.set_ylabel(r"Avg. Spearman's $\rho$", rotation=270, size=18)
         cbar.ax.yaxis.set_ticks_position('left')
     plt.tight_layout()
-    plt.savefig(os.path.join(FIG_PATH, "agreement.pdf"), dpi=300)
+    plt.savefig(os.path.join(FIG_PATH, "agreement.svg"), dpi=300)
     plt.close()

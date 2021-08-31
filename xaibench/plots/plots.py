@@ -537,13 +537,3 @@ if __name__ == "__main__":
             common_x_label="Test PCC",
             savename="test_pcc_wo_pairs",
         )
-
-    # overlap
-    with open(os.path.join(RESULTS_PATH, "train_pairs_overlap.pt"), "rb") as handle:
-        overlap = dill.load(handle)
-
-    plt.hist(overlap.values(), bins=30)
-    plt.xlabel("Fraction of benchmark compounds present in the training sets")
-    plt.ylabel("Count")
-    plt.savefig(os.path.join(FIG_PATH, "overlap.png"))
-    plt.close()

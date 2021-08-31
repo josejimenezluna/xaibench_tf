@@ -4,7 +4,6 @@ import argparse
 
 import dill
 import numpy as np
-from numpy.lib.npyio import save
 import pandas as pd
 from joblib import Parallel, delayed
 from rdkit.Chem import MolFromSmiles
