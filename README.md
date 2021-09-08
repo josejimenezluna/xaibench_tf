@@ -1,6 +1,6 @@
 # Benchmarking molecular feature attribution methods with activity cliffs
 
-Supporting data and code for "Benchmarking molecular feature attribution methods with activity cliffs", as available on (ChemRxiv)[link].
+Supporting data and code for "Benchmarking molecular feature attribution methods with activity cliffs", as available on [ChemRxiv](link).
 
 
 ## Structure of the benchmark
@@ -38,12 +38,12 @@ An explanation of each file is provided below:
 * `similarity*.npy`: numpy array containing Tanimoto similarity matrix between the compounds contained in the `training.csv` and `bench.csv` files, before and after removing benchmark compounds pairs from the training sets (see `_wo_pairs` files).
 * `training*.csv`: training compounds as well as activity information for each of the targets considered in the benchmark, extracted from the ChEMBL27 database. A version excluding the benchmark compounds is provided in the `_wo_pairs` equivalents.
 
-All the `.pt` files can be read with the Python (pickle module)[https://docs.python.org/3/library/pickle.html].
+All the `.pt` files can be read with the Python [pickle module](https://docs.python.org/3/library/pickle.html).
 
 
 ## Replication of the results
 
-All results reported in the manuscript can be reproduced with the accompanying code. We recommend the (conda)[https://docs.conda.io/en/latest/miniconda.html] Python package manager, and while an GPU is technically not required to run the models and feature attribution methods reported here, it is heavily encouraged. Furthermore, the code has only been tested under Linux. Make a new environment with the provided `environment.yml` file:
+All results reported in the manuscript can be reproduced with the accompanying code. We recommend the [conda](https://docs.conda.io/en/latest/miniconda.html) Python package manager, and while an GPU is technically not required to run the models and feature attribution methods reported here, it is heavily encouraged. Furthermore, the code has only been tested under Linux. Make a new environment with the provided `environment.yml` file:
 
 ```bash
 conda env create -f environment.yml
