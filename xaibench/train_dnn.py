@@ -16,13 +16,17 @@ from xaibench.train_gnn import BATCH_SIZE, N_EPOCHS, SEED, TEST_SET_SIZE, rmse, 
 from xaibench.utils import LOG_PATH, MODELS_DNN_PATH
 
 N_JOBS = int(os.getenv("LSB_DJOB_NUMPROC", multiprocessing.cpu_count()))
+HIDDEN_DIM = 256
 
 
 def get_fnn(activation=None, loss="mse", metrics="mse"):
+    """
+    Returns a simple compiled Keras FNN model
+    """
     model = Sequential()
-    model.add(Dense(256, input_shape=(FP_SIZE,), activation="relu"))
-    model.add(Dense(256, activation="relu"))
-    model.add(Dense(256, activation="relu"))
+    model.add(Dense(HIDDEN_DIM, input_shape=(FP_SIZE,), activation="relu"))
+    model.add(Dense(HIDDEN_DIM, activation="relu"))
+    model.add(Dense(HIDDEN_DIM, activation="relu"))
     model.add(Dense(1, activation=activation))
     opt = Adam(learning_rate=LR)
     model.compile(optimizer=opt, loss=loss, metrics=[metrics])

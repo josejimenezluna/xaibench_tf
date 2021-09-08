@@ -17,6 +17,10 @@ N_JOBS = int(os.getenv("LSB_DJOB_NUMPROC", multiprocessing.cpu_count()))
 
 
 def method_agreement(color_all, metric_f):
+    """
+    Computes agreement between all the colors present in dict `color_all`
+    using a predefined metric `metric_f`
+    """
     methods = list(color_all.keys())
     agreement = np.zeros((len(methods), len(methods)), dtype=np.float32)
 
