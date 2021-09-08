@@ -1,8 +1,11 @@
-# Supporting code for "A drug-discovery-relevant benchmark for feature attribution methods"
+# Benchmarking molecular feature attribution methods with activity cliffs
+
+Supporting data and code for "Benchmarking molecular feature attribution methods with activity cliffs", as available on (ChemRxiv)[link].
+
 
 ## Structure of the benchmark
 
-Download the benchmark as well as all associated data from here:
+Download the benchmark as well as all associated data from here (~85GB, when uncompressed):
 
 ```bash
 wget -O data.tar.gz link
@@ -35,38 +38,12 @@ An explanation of each file is provided below:
 * `similarity*.npy`: numpy array containing Tanimoto similarity matrix between the compounds contained in the `training.csv` and `bench.csv` files, before and after removing benchmark compounds pairs from the training sets (see `_wo_pairs` files).
 * `training*.csv`: training compounds as well as activity information for each of the targets considered in the benchmark, extracted from the ChEMBL27 database. A version excluding the benchmark compounds is provided in the `_wo_pairs` equivalents.
 
+All the `.pt` files can be read with the Python (pickle module)[https://docs.python.org/3/library/pickle.html].
 
-## (Optional) Download trained models and results
-
-All trained models as well as generated results are also available for download. These can come in handy for result replication without executing the accompanying code, which is very compute-intensive. 
-
-Download GNN-based models:
-
-```bash
-wget -O models.tar.gz
-```
-
-Random forest models:
-
-```bash
-wget -O models_rf.tar.gz
-```
-
-Fully-connected DNN models:
-
-```bash
-wget -O models_dnn.tar.gz
-```
-
-And the final results:
-
-```bash
-wget -O results.tar.gz 
-```
 
 ## Replication of the results
 
-All results reported in the manuscript can be reproduced with the accompanying code. We recommend the Anaconda python package manager, and while an GPU is technically not required to run the models and feature attribution methods reported here, it is heavily encouraged. Make a new environment with the provided `environment.yml` file:
+All results reported in the manuscript can be reproduced with the accompanying code. We recommend the (conda)[https://docs.conda.io/en/latest/miniconda.html] Python package manager, and while an GPU is technically not required to run the models and feature attribution methods reported here, it is heavily encouraged. Furthermore, the code has only been tested under Linux. Make a new environment with the provided `environment.yml` file:
 
 ```bash
 conda env create -f environment.yml
@@ -120,14 +97,30 @@ xaibench/
 * `utils.py`: Utility files used throughout the repo for path handling and other minor tasks. 
 
 
+## (Optional) Download trained models and results
+
+All trained models as well as generated results are also available for download. These can come in handy for result replication without executing the accompanying code, which is can be computationally expensive. These are available here.
+
+Download trained models:
+
+```bash
+wget -O models.tar.gz
+```
+
+And the final results presented in the manuscript:
+
+```bash
+wget -O results.tar.gz 
+```
+
 ## Citation
 
-If you consider this work or codebase useful, please consider citing:
+If you find this work, code, or parts thereof useful, please consider citing:
 
 ```
 @article{jimenez2021benchmark,
-  title={A drug-discovery-relevant benchmark for feature attribution methods},
-  author={Jimenez-Luna, J., Skalic, M., Weskamp, N., and Schneider G.},
+  title={Benchmarking molecular feature attribution methods with activity cliffs},
+  author={Jimenez-Luna, J., Skalic, M., and Weskamp, N.},
   journal={TBD},
   year={2021},
 }
