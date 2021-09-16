@@ -7,8 +7,10 @@ Supporting data and code for "Benchmarking molecular feature attribution methods
 
 Download the benchmark as well as all associated data from here (~85GB, when uncompressed):
 
+**Update Sept. 16th**: Data is currently being uploaded. It should be available in the next few hours/days. 
+
 ```bash
-wget -O data.tar.gz link
+wget -O data.tar.gz xxx
 tar -xf data.tar.gz
 ```
 
