@@ -120,11 +120,14 @@ wget -O results.tar.gz
 If you find this work, code, or parts thereof useful, please consider citing:
 
 ```
-@article{jimenez2021benchmark,
-  title={Benchmarking molecular feature attribution methods with activity cliffs},
-  author={Jimenez-Luna, J., Skalic, M., and Weskamp, N.},
-  journal={TBD},
-  year={2021},
-}
+
+ @article{jimenezluna2021benchmarking,
+ title={Benchmarking molecular feature attribution methods with activity cliffs},
+ DOI={10.33774/chemrxiv-2021-pp88m},
+ journal={ChemRxiv},
+ publisher={Cambridge Open Engage},
+ author={Jiménez Luna, José and Skalic, Miha and Weskamp, Nils},
+ year={2021}}
+
 ```
 
