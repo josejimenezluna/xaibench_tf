@@ -1,6 +1,6 @@
 # Benchmarking molecular feature attribution methods with activity cliffs
 
-Supporting data and code for "Benchmarking molecular feature attribution methods with activity cliffs", as available on [ChemRxiv](link).
+Supporting data and code for "Benchmarking molecular feature attribution methods with activity cliffs", as available on [ChemRxiv](https://chemrxiv.org/engage/chemrxiv/article-details/613b21fe27d906d4c183cfc1).
 
 
 ## Structure of the benchmark
