@@ -5,12 +5,11 @@ Supporting data and code for "Benchmarking molecular feature attribution methods
 
 ## Structure of the benchmark
 
-Download the benchmark as well as all associated data from here (~85GB, when uncompressed):
+Download the benchmark as well as all associated data from [here](https://www.research-collection.ethz.ch/handle/20.500.11850/504716) (~85GB, when uncompressed):
 
-**Update Sept. 16th**: Data is currently being uploaded. It should be available in the next few hours/days. 
 
 ```bash
-wget -O data.tar.gz xxx
+wget -O data.tar.gz https://libdrive.ethz.ch/index.php/s/PYc53dCRSuxAiqC/download
 tar -xf data.tar.gz
 ```
 
@@ -103,16 +102,22 @@ xaibench/
 
 All trained models as well as generated results are also available for download. These can come in handy for result replication without executing the accompanying code, which is can be computationally expensive. These are available here.
 
-Download trained models:
+Download trained models (`models.tar.gz`):
 
 ```bash
-wget -O models.tar.gz
+wget -O models.tar.gz https://libdrive.ethz.ch/index.php/s/PYc53dCRSuxAiqC/download
 ```
 
-And the final results presented in the manuscript:
+Logs with training metrics (`logs.tar.gz`):
 
 ```bash
-wget -O results.tar.gz 
+wget -O https://libdrive.ethz.ch/index.php/s/PYc53dCRSuxAiqC/download
+```
+
+And the final results presented in the manuscript (`results.tar.gz`):
+
+```bash
+wget -O results.tar.gz https://libdrive.ethz.ch/index.php/s/PYc53dCRSuxAiqC/download
 ```
 
 ## Citation
@@ -120,7 +125,6 @@ wget -O results.tar.gz
 If you find this work, code, or parts thereof useful, please consider citing:
 
 ```
-
  @article{jimenezluna2021benchmarking,
  title={Benchmarking molecular feature attribution methods with activity cliffs},
  DOI={10.33774/chemrxiv-2021-pp88m},
