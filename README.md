@@ -1,5 +1,7 @@
 # Benchmarking molecular feature attribution methods with activity cliffs
 
+[![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.5523952.svg)](https://doi.org/10.5281/zenodo.5523952)
+
 Supporting data and code for "Benchmarking molecular feature attribution methods with activity cliffs", as available on [ChemRxiv](https://chemrxiv.org/engage/chemrxiv/article-details/613b21fe27d906d4c183cfc1).
 
 
