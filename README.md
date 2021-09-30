@@ -113,7 +113,7 @@ wget -O models.tar.gz https://libdrive.ethz.ch/index.php/s/PYc53dCRSuxAiqC/downl
 Logs with training metrics (`logs.tar.gz`):
 
 ```bash
-wget -O https://libdrive.ethz.ch/index.php/s/PYc53dCRSuxAiqC/download
+wget -O logs.tar.gz https://libdrive.ethz.ch/index.php/s/PYc53dCRSuxAiqC/download
 ```
 
 And the final results presented in the manuscript (`results.tar.gz`):
