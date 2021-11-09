@@ -1,13 +1,17 @@
 import os
-import pandas as pd
 from glob import glob
 
-from xaibench.utils import DATA_PATH
-from tqdm import tqdm
 import numpy as np
+import pandas as pd
+from tqdm import tqdm
+from xaibench.utils import DATA_PATH
 
 
 def check_offenders(pairs_df):
+    """
+    Checks whether there are ligands with opposite colors depending
+    on the benchmarking pair they are in.
+    """
     un_ligands = np.unique(
         [pairs_df["smiles_i"].to_list() + pairs_df["smiles_j"].to_list()]
     )
