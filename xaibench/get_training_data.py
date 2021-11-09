@@ -11,13 +11,14 @@ from tqdm import tqdm
 
 from xaibench.retrieve_bdb_series import DATA_PATH
 from xaibench.utils import ensure_readability, translate
+from IPython.core.debugger import Tracer; debug_here = Tracer()
 
 RDLogger.DisableLog("rdApp.*")
 
 UNIPROT_COL = "UniProt (SwissProt) Primary ID of Target Chain"
 
 SQL_QUERY = """
-SELECT cs.canonical_smiles, ac.standard_relation, ac.pchembl_value, ac.standard_units, ac.standard_type
+SELECT cs.canonical_smiles, ac.standard_relation, ac.pchembl_value, ac.standard_units, ac.standard_type, ass.assay_id
 FROM compound_structures AS cs INNER JOIN activities as ac ON cs.molregno = ac.molregno
 INNER JOIN assays AS ass ON ac.assay_id = ass.assay_id
 INNER JOIN target_components AS tc ON ass.tid = tc.tid
@@ -55,6 +56,7 @@ def retrieve_ligands(conn, tsv):
             "pchembl_value",
             "standard_units",
             "standard_type",
+            "assay_id"
         ],
     )
 
@@ -75,7 +77,8 @@ def retrieve_ligands(conn, tsv):
             inchis.append(MolToInchi(mol))
             idx_suc.append(idx)
 
-    values = training_df["pchembl_value"].iloc[idx_suc].to_list()
+    values = pd.to_numeric(training_df["pchembl_value"].iloc[idx_suc]).to_list()
+    assay_ids = pd.unique(training_df["assay_id"].iloc[idx_suc].to_list())
 
     df_inchis = pd.DataFrame({"inchis": inchis, "pchembl_value": values})
     records = df_inchis.groupby(["inchis"], as_index=False)[
@@ -88,7 +91,7 @@ def retrieve_ligands(conn, tsv):
     train_clean = pd.DataFrame(
         {"canonical_smiles": smiles, "pchembl_value": values}
     )
-    return train_clean
+    return train_clean, assay_ids
 
 
 if __name__ == "__main__":
@@ -102,9 +105,10 @@ if __name__ == "__main__":
         bench_df = pd.read_csv(bench_csv)
 
         if os.path.exists(bench_csv) and os.path.exists(colors_pt):
-            df = retrieve_ligands(conn, tsv)
+            df, assay_ids = retrieve_ligands(conn, tsv)
             if len(df) > MIN_SAMPLES:
                 df.to_csv(os.path.join(dirname, "training.csv"), index=None)
+                np.save(os.path.join(dirname, "assay_ids.npy"), arr=assay_ids)
 
                 bench_sm = set(bench_df["smiles"].to_list())
                 idx_notinbench = []
