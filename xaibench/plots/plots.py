@@ -397,7 +397,7 @@ if __name__ == "__main__":
 
     for idx, color_f in enumerate(colors["rf"]):
         train_file = os.path.join(os.path.dirname(color_f), "training.csv")
-        if os.path.exists(sim_file):
+        if os.path.exists(train_file):
             sizes["rf"].append(len(pd.read_csv(train_file)))
             exists["rf"].append(idx)
 
@@ -405,7 +405,7 @@ if __name__ == "__main__":
 
     for idx, color_f in enumerate(colors["dnn"]):
         train_file = os.path.join(os.path.dirname(color_f), "training.csv")
-        if os.path.exists(sim_file):
+        if os.path.exists(train_file):
             sizes["dnn"].append(len(pd.read_csv(train_file)))
             exists["dnn"].append(idx)
 
@@ -437,6 +437,57 @@ if __name__ == "__main__":
             avail_methods=avail_methods,
             common_x_label="Number of training samples",
             savename="sizes_wo_pairs",
+        )
+
+    # assay ids
+    nassays = collections.defaultdict(list)
+    exists = collections.defaultdict(list)
+    y = {}
+
+    for idx, color_f in enumerate(colors["rf"]):
+        assay_f = os.path.join(os.path.dirname(color_f), "assay_ids.npy")
+        if os.path.exists(assay_f):
+            nassays["rf"].append(len(np.load(assay_f)))
+            exists["rf"].append(idx)
+    
+    y["rf"] = np.array(accs_wo["rf"]["rf"][0])[exists["rf"]]
+
+
+    for idx, color_f in enumerate(colors["dnn"]):
+        assay_f = os.path.join(os.path.dirname(color_f), "assay_ids.npy")
+        if os.path.exists(assay_f):
+            nassays["dnn"].append(len(np.load(assay_f)))
+            exists["dnn"].append(idx)
+    
+    y["dnn"] = np.array(accs_wo["dnn"]["dnn"][0])[exists["dnn"]]
+
+
+    for bt in BLOCK_TYPES:
+        avail_methods = AVAIL_METHODS if bt == "gat" else AVAIL_METHODS[:-1]
+        avail_methods = avail_methods + ["diff"]
+
+        for idx, color_f in enumerate(tqdm(colors[bt])):
+            assay_f = os.path.join(os.path.dirname(color_f), "assay_ids.npy")
+            if os.path.exists(assay_f):
+                nassays[bt].append(len(np.load(assay_f)))
+                exists[bt].append(idx)
+
+        y[bt] = {}
+
+        for idx_m, method in enumerate(tqdm(avail_methods)):
+            method_name = method if isinstance(method, str) else method.__name__
+            y[bt][method_name] = np.array(accs_wo[bt][method_name][0])[exists[bt]]
+
+    for bt in BLOCK_TYPES:
+        avail_methods = AVAIL_METHODS if bt == "gat" else AVAIL_METHODS[:-1]
+        avail_methods = avail_methods + ["diff"]
+        comparison_plot(
+            nassays,
+            y,
+            block_type=bt,
+            avail_methods=avail_methods,
+            common_x_label="Number of different training assays",
+            savename="nassays_wo_pairs",
         )
 
     # performance
