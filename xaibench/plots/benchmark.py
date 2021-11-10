@@ -4,9 +4,7 @@ import dill
 import matplotlib
 import matplotlib.pyplot as plt
 import numpy as np
-import pandas as pd
 from matplotlib.font_manager import FontProperties
-from tqdm import tqdm
 from xaibench.color import AVAIL_METHODS
 from xaibench.determine_col import MIN_PER_COMMON_ATOMS
 from xaibench.score import N_THRESHOLDS
