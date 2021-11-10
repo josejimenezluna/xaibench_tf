@@ -2,9 +2,9 @@ import argparse
 import os
 
 import dill
+import numpy as np
 import pandas as pd
 import tensorflow as tf
-from tensorflow.keras.models import load_model as load_keras
 from graph_attribution.experiments import GNN
 from graph_attribution.featurization import MolTensorizer, smiles_to_graphs_tuple
 from graph_attribution.graphnet_models import BlockType
@@ -20,12 +20,13 @@ from graph_attribution.hparams import get_hparams
 from graph_attribution.tasks import RegresionTaskType
 from graph_attribution.templates import TargetType
 from joblib import load as load_sklearn
+from tensorflow.keras.models import load_model as load_keras
 from tqdm import tqdm
 
 from xaibench.color_utils import get_batch_indices, ig_ref
-from xaibench.diff_utils import diff_gnn, diff_mask
+from xaibench.diff_utils import diff_gnn, diff_mask, pred_pairs, pred_pairs_diff
 from xaibench.train_gnn import DEVICE, HID_SIZE, N_LAYERS
-from xaibench.utils import DATA_PATH, MODELS_PATH, MODELS_RF_PATH, MODELS_DNN_PATH
+from xaibench.utils import DATA_PATH, MODELS_DNN_PATH, MODELS_PATH, MODELS_RF_PATH
 
 AVAIL_METHODS = [IntegratedGradients, GradInput, CAM, GradCAM, AttentionWeights]
 
@@ -89,8 +90,10 @@ def color_pairs_diff(pair_df, model, diff_fun):
 
 
 def model_not_exists(id_):
-    print(f"Model does not exist. Pairs {id_} most likely does not have training data associated.")
-    return 
+    print(
+        f"Model does not exist. Pairs {id_} most likely does not have training data associated."
+    )
+    return
 
 
 if __name__ == "__main__":
@@ -121,14 +124,16 @@ if __name__ == "__main__":
             model_path = os.path.join(MODELS_RF_PATH, f"{id_}{args.savename}.pt")
             if not os.path.exists(model_path):
                 model_not_exists(id_)
-                
+
             model_rf = load_sklearn(model_path)
+            preds = pred_pairs_diff(pair_df, model_rf)
             colors = color_pairs_diff(pair_df, model=model_rf, diff_fun=diff_mask)
         elif args.block_type == "dnn":
             model_path = os.path.join(MODELS_DNN_PATH, f"{id_}{args.savename}")
             if not os.path.exists(model_path):
                 model_not_exists(id_)
             model_dnn = load_keras(model_path)
+            preds = pred_pairs_diff(pair_df, model_dnn)
             colors = color_pairs_diff(pair_df, model=model_dnn, diff_fun=diff_mask)
 
         else:
@@ -157,14 +162,15 @@ if __name__ == "__main__":
                 )
                 checkpoint = tf.train.Checkpoint(model_gnn)
                 model_path = os.path.join(
-                        MODELS_PATH,
-                        f"{args.block_type}_{id_}{args.savename}",
-                        f"{args.block_type}_{id_}{args.savename}-1",
-                    )
+                    MODELS_PATH,
+                    f"{args.block_type}_{id_}{args.savename}",
+                    f"{args.block_type}_{id_}{args.savename}-1",
+                )
                 if not os.path.join(model_path):
                     model_not_exists(id_)
                 checkpoint.restore(model_path)
 
+            preds = pred_pairs(pair_df, model_gnn)
             colors = color_pairs(pair_df, model_gnn, block_type=args.block_type)
             colors["diff"] = color_pairs_diff(
                 pair_df, model=model_gnn, diff_fun=diff_gnn
@@ -172,8 +178,21 @@ if __name__ == "__main__":
 
         with open(
             os.path.join(
-                DATA_PATH, "validation_sets", id_, f"colors_{args.block_type}{args.savename}.pt"
+                DATA_PATH,
+                "validation_sets",
+                id_,
+                f"colors_{args.block_type}{args.savename}.pt",
             ),
             "wb",
         ) as handle:
             dill.dump(colors, handle)
+
+        np.save(
+            os.path.join(
+                DATA_PATH,
+                "validation_sets",
+                id_,
+                f"preds_{args.block_type}{args.savename}.npy",
+            ),
+            arr=preds,
+        )

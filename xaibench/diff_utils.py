@@ -2,10 +2,13 @@ from copy import deepcopy
 
 import numpy as np
 import tensorflow as tf
-from graph_attribution.featurization import MolTensorizer
+from graph_attribution.featurization import MolTensorizer, smiles_to_graphs_tuple
+from graph_attribution.graphs import get_graphs_tf, get_num_graphs
 from graph_nets.utils_tf import data_dicts_to_graphs_tuple
 from rdkit.Chem import AllChem, DataStructs, MolFromSmiles
+from tqdm import tqdm
 
+from xaibench.color_utils import get_batch_indices
 from xaibench.train_gnn import DEVICE
 
 FP_SIZE = 1024
@@ -34,6 +37,43 @@ def featurize_ecfp4(mol, fp_size=FP_SIZE, bond_radius=BOND_RADIUS):
     arr = np.zeros((1,), dtype=np.float32)
     DataStructs.ConvertToNumpyArray(fp, arr)
     return arr
+
+
+def pred_pairs(pair_df, model, batch_size=16):
+    tensorizer = MolTensorizer()
+
+    g_i, g_j = (
+        smiles_to_graphs_tuple(pair_df["smiles_i"], tensorizer),
+        smiles_to_graphs_tuple(pair_df["smiles_j"], tensorizer),
+    )
+    preds_diff = []
+
+    n = get_num_graphs(g_i)
+    indices = get_batch_indices(n, int(batch_size / 2))
+
+    for idx in tqdm(indices):
+        with DEVICE:
+            b_i, b_j = get_graphs_tf(g_i, idx), get_graphs_tf(g_j, idx)
+            pred_i, pred_j = model(b_i), model(b_j)
+            pred = pred_i - pred_j
+        preds_diff.extend(pred.numpy()[:, 0].tolist())
+    return preds_diff
+
+
+def pred_pairs_diff(pair_df, model, mol_read_f=MolFromSmiles):
+    preds_diff = []
+
+    for row in tqdm(pair_df.itertuples(), total=len(pair_df)):
+        sm_i, sm_j = getattr(row, "smiles_i"), getattr(row, "smiles_j")
+        mol_i, mol_j = mol_read_f(sm_i), mol_read_f(sm_j)
+        fp_i, fp_j = featurize_ecfp4(mol_i), featurize_ecfp4(mol_j)
+        pred_i, pred_j = (
+            model.predict(fp_i[np.newaxis, :]).squeeze(),
+            model.predict(fp_j[np.newaxis, :]).squeeze(),
+        )
+        pred = pred_i - pred_j
+        preds_diff.append(pred)
+    return preds_diff
 
 
 def diff_mask(
