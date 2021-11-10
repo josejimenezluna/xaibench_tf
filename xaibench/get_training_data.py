@@ -11,7 +11,6 @@ from tqdm import tqdm
 
 from xaibench.retrieve_bdb_series import DATA_PATH
 from xaibench.utils import ensure_readability, translate
-from IPython.core.debugger import Tracer; debug_here = Tracer()
 
 RDLogger.DisableLog("rdApp.*")
 
