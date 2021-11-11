@@ -1,6 +1,9 @@
 import os
 
+ROOT_PATH = os.path.dirname(os.path.dirname(__file__))
 DATA_PATH = os.path.join(os.path.dirname(os.path.dirname(__file__)), "data")
+BENCHMARK_PATH = os.path.join(os.path.dirname(os.path.dirname(__file__)), "data", "validation_sets")
+
 MODELS_PATH = os.path.join(os.path.dirname(os.path.dirname(__file__)), "models")
 MODELS_RF_PATH = os.path.join(os.path.dirname(os.path.dirname(__file__)), "models_rf")
 MODELS_DNN_PATH = os.path.join(os.path.dirname(os.path.dirname(__file__)), "models_dnn")
