@@ -122,6 +122,10 @@ And the final results presented in the manuscript (`results.tar.gz`):
 wget -O results.tar.gz https://libdrive.ethz.ch/index.php/s/PYc53dCRSuxAiqC/download
 ```
 
+## Tutorial
+
+If you are interested in using this work to benchmark additional feature attribution approaches, we provide a tutorial in jupyter notebook format that should cover the basics of data handling and calculation of metrics under `xaibench/notebooks/benchmark_example.ipynb`.  
+
 ## Citation
 
 If you find this work, code, or parts thereof useful, please consider citing:
