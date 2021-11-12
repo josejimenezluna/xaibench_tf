@@ -243,17 +243,17 @@ if __name__ == "__main__":
     ## direction plot
 
     f, axs = plt.subplots(
-        figsize=(16, 16), nrows=2, ncols=2, sharey="row", sharex=True, tight_layout=True
+        figsize=(16, 9), nrows=1, ncols=2, sharey="row", sharex=True, tight_layout=True
     )
     fontP = FontProperties()
     fontP.set_size(12)
     cm = plt.get_cmap("jet")
     num_colors = ((len(AVAIL_METHODS)) * len(BLOCK_TYPES)) + 3
-    axs[0, 0].set_prop_cycle("color", [cm(i / num_colors) for i in range(num_colors)])
-    axs[0, 1].set_prop_cycle("color", [cm(i / num_colors) for i in range(num_colors)])
+    axs[0].set_prop_cycle("color", [cm(i / num_colors) for i in range(num_colors)])
+    axs[1].set_prop_cycle("color", [cm(i / num_colors) for i in range(num_colors)])
 
 
-    axs[0, 0].plot(
+    axs[0].plot(
         MIN_PER_COMMON_ATOMS * 100,
         np.array(
             [
@@ -265,7 +265,7 @@ if __name__ == "__main__":
         marker="o",
     )
 
-    axs[0, 1].plot(
+    axs[1].plot(
         MIN_PER_COMMON_ATOMS * 100,
         np.array(
             [
@@ -277,7 +277,7 @@ if __name__ == "__main__":
         marker="o",
     )
 
-    axs[0, 0].plot(
+    axs[0].plot(
         MIN_PER_COMMON_ATOMS * 100,
         np.array(
             [
@@ -289,7 +289,7 @@ if __name__ == "__main__":
         marker="o",
     )
 
-    axs[0, 1].plot(
+    axs[1].plot(
         MIN_PER_COMMON_ATOMS * 100,
         np.array(
             [
@@ -315,26 +315,33 @@ if __name__ == "__main__":
                 for idx_th in range(N_THRESHOLDS)
             ]
 
-            axs[0, 0].plot(
+            axs[0].plot(
                 MIN_PER_COMMON_ATOMS * 100,
                 medians_directions,
                 label=f"{bt.upper()} ({method_name})",
                 marker="o",
             )
-            axs[0, 1].plot(
+            axs[1].plot(
                 MIN_PER_COMMON_ATOMS * 100,
                 medians_directions_wo,
                 label=f"{bt.upper()} ({method_name})",
                 marker="o",
             )
-        axs[0, 0].grid(True)
-        axs[0, 1].grid(True)
+        axs[0].grid(True)
+        axs[1].grid(True)
 
-    axs[0, 0].set_title(r"Including benchmark pairs in training", fontsize=14)
-    axs[0, 1].set_title(r"Excluding benchmark pairs from training", fontsize=14)
-    axs[0, 0].tick_params(labelsize=14)
-    axs[0, 1].tick_params(labelsize=14)
-    axs[0, 0].set_ylabel(r"Aggregated color direction accuracy (\%)", fontsize=14)
+    axs[0].set_title(r"Including benchmark pairs in training", fontsize=14)
+    axs[1].set_title(r"Excluding benchmark pairs from training", fontsize=14)
+    axs[0].tick_params(labelsize=14)
+    axs[1].tick_params(labelsize=14)
+    axs[0].set_ylabel(r"Aggregated color direction accuracy (\%)", fontsize=14)
+    xlabel = f.text(
+        0.45,
+        0.04,
+        r"Minimum shared MCS atoms among pairs (\%)",
+        ha="center",
+        fontsize=14,
+    )
 
     legend = plt.legend(
         bbox_to_anchor=(1.05, 1),

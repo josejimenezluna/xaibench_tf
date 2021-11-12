@@ -76,18 +76,6 @@ def comparison_plot(xs, ys, block_type, avail_methods, common_x_label, ylabel, s
     plt.close()
 
 if __name__ == "__main__":
-    with open(os.path.join(RESULTS_PATH, "accs.pt"), "rb") as handle:
-        accs = dill.load(handle)
-
-    with open(os.path.join(RESULTS_PATH, "f1s.pt"), "rb") as handle:
-        f1s = dill.load(handle)
-
-    with open(os.path.join(RESULTS_PATH, "directions.pt"), "rb") as handle:
-        directions = dill.load(handle)
-
-    with open(os.path.join(RESULTS_PATH, "idxs.pt"), "rb") as handle:
-        idxs = dill.load(handle)
-
     with open(os.path.join(RESULTS_PATH, "accs_wo_pairs.pt"), "rb") as handle:
         accs_wo = dill.load(handle)
 

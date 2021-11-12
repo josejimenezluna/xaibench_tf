@@ -103,6 +103,7 @@ def method_comparison(
     avg_f1 = {}
     avg_direction = {}
     idx_valid = {}
+    idx_direction = {}
     sizes_valid = {}
 
     for idx, color_method_f in enumerate(tqdm(colors_path)):
@@ -227,7 +228,10 @@ def method_comparison(
                     avg_direction.setdefault(
                         method_name, [[] for _ in range(N_THRESHOLDS)]
                     )[idx_th].append(directions.mean())
-    return avg_acc, avg_f1, avg_direction, idx_valid, sizes_valid
+                    idx_direction.setdefault(
+                        method_name, [[] for _ in range(N_THRESHOLDS)]
+                    )[idx_th].append(idx)
+    return avg_acc, avg_f1, avg_direction, idx_valid, idx_direction, sizes_valid
 
 
 if __name__ == "__main__":
@@ -244,6 +248,7 @@ if __name__ == "__main__":
     f1s = {}
     directions = {}
     idxs = {}
+    idxs_direction = {}
     sizes = {}
 
     colors_rf = sorted(
@@ -266,6 +271,7 @@ if __name__ == "__main__":
         f1s["rf"],
         directions["rf"],
         idxs["rf"],
+        idxs_direction["rf"],
         sizes["rf"],
     ) = method_comparison(colors_rf, other_name="rf")
     (
@@ -273,6 +279,7 @@ if __name__ == "__main__":
         f1s["dnn"],
         directions["dnn"],
         idxs["dnn"],
+        idxs_direction["dnn"],
         sizes["dnn"],
     ) = method_comparison(colors_dnn, other_name="dnn")
 
@@ -289,7 +296,14 @@ if __name__ == "__main__":
             )
         )
 
-        accs[bt], f1s[bt], directions[bt], idxs[bt], sizes[bt] = method_comparison(
+        (
+            accs[bt],
+            f1s[bt],
+            directions[bt],
+            idxs[bt],
+            idxs_direction[bt],
+            sizes[bt],
+        ) = method_comparison(
             colors_method, avail_methods=avail_methods, assign_bonds=True
         )
 
@@ -306,6 +320,11 @@ if __name__ == "__main__":
 
     with open(os.path.join(RESULTS_PATH, f"idxs{args.savename}.pt"), "wb") as handle:
         dill.dump(idxs, handle)
+
+    with open(
+        os.path.join(RESULTS_PATH, f"idxs_direction{args.savename}.pt"), "wb"
+    ) as handle:
+        dill.dump(idxs_direction, handle)
 
     with open(os.path.join(RESULTS_PATH, f"sizes{args.savename}.pt"), "wb") as handle:
         dill.dump(sizes, handle)
