@@ -233,7 +233,7 @@ if __name__ == "__main__":
     )
     plt.subplots_adjust(right=0.75, top=1.57, bottom=0.95)
     plt.savefig(
-        os.path.join(FIG_PATH, f"color.svg"),
+        os.path.join(FIG_PATH, "color.svg"),
         dpi=300,
         bbox_extra_artists=(xlabel, legend,),
         bbox_inches="tight",
