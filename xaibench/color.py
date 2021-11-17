@@ -127,14 +127,14 @@ if __name__ == "__main__":
 
             model_rf = load_sklearn(model_path)
             preds = pred_pairs_diff(pair_df, model_rf)
-            # colors = color_pairs_diff(pair_df, model=model_rf, diff_fun=diff_mask)
+            colors = color_pairs_diff(pair_df, model=model_rf, diff_fun=diff_mask)
         elif args.block_type == "dnn":
             model_path = os.path.join(MODELS_DNN_PATH, f"{id_}{args.savename}")
             if not os.path.exists(model_path):
                 model_not_exists(id_)
             model_dnn = load_keras(model_path)
             preds = pred_pairs_diff(pair_df, model_dnn)
-            # colors = color_pairs_diff(pair_df, model=model_dnn, diff_fun=diff_mask)
+            colors = color_pairs_diff(pair_df, model=model_dnn, diff_fun=diff_mask)
 
         else:
             hp = get_hparams(
@@ -171,21 +171,21 @@ if __name__ == "__main__":
                 checkpoint.restore(model_path)
 
             preds = pred_pairs(pair_df, model_gnn)
-            # colors = color_pairs(pair_df, model_gnn, block_type=args.block_type)
-            # colors["diff"] = color_pairs_diff(
-            #     pair_df, model=model_gnn, diff_fun=diff_gnn
-            # )
+            colors = color_pairs(pair_df, model_gnn, block_type=args.block_type)
+            colors["diff"] = color_pairs_diff(
+                pair_df, model=model_gnn, diff_fun=diff_gnn
+            )
 
-        # with open(
-        #     os.path.join(
-        #         DATA_PATH,
-        #         "validation_sets",
-        #         id_,
-        #         f"colors_{args.block_type}{args.savename}.pt",
-        #     ),
-        #     "wb",
-        # ) as handle:
-        #     dill.dump(colors, handle)
+        with open(
+            os.path.join(
+                DATA_PATH,
+                "validation_sets",
+                id_,
+                f"colors_{args.block_type}{args.savename}.pt",
+            ),
+            "wb",
+        ) as handle:
+            dill.dump(colors, handle)
 
         np.save(
             os.path.join(
