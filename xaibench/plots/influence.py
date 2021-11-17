@@ -586,7 +586,7 @@ if __name__ == "__main__":
             avail_methods=avail_methods,
             common_x_label="Number of different training assays",
             ylabel=r"Aggregated direction color accuracy (\%)",
-            savename="nassays_wo_pairs",
+            savename="nassays_direction_wo_pairs",
         )
 
     # performance

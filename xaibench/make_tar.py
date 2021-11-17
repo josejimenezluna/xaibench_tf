@@ -21,4 +21,5 @@ if __name__ == "__main__":
             dirname = os.path.join(BENCHMARK_PATH, id_)
             needed_f = [os.path.exists(os.path.join(dirname, f)) for f in INCLUDE_F]
             if all(needed_f):
-                tar.add(dirname, arcname=id_, recursive=True)
+                for f in INCLUDE_F:
+                    tar.add(os.path.join(dirname, f), arcname=os.path.join(id_, f), recursive=True)
