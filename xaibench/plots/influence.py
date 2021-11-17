@@ -82,11 +82,14 @@ if __name__ == "__main__":
     with open(os.path.join(RESULTS_PATH, "f1s_wo_pairs.pt"), "rb") as handle:
         f1s_wo = dill.load(handle)
 
+    with open(os.path.join(RESULTS_PATH, "idxs_wo_pairs.pt"), "rb") as handle:
+        idxs_wo = dill.load(handle)
+
     with open(os.path.join(RESULTS_PATH, "directions_wo_pairs.pt"), "rb") as handle:
         directions_wo = dill.load(handle)
 
-    with open(os.path.join(RESULTS_PATH, "idxs_wo_pairs.pt"), "rb") as handle:
-        idxs_wo = dill.load(handle)
+    with open(os.path.join(RESULTS_PATH, "idxs_direction_wo_pairs.pt"), "rb") as handle:
+        idx_directions_wo = dill.load(handle)
 
 
     ## Common variables for other plots
@@ -128,26 +131,30 @@ if __name__ == "__main__":
             idxs_wo[bt]["CAM"][THRESHOLD_IDX]
         ]  # CAM or other GNN-based method is the same. 0 is at MCS threshold .5
 
-    colors_non_indexed = {}
+    colors_direction = {}
 
-    colors_non_indexed["rf"] = np.array(
+    colors_direction["rf"] = np.array(
         sorted(
             glob(
                 os.path.join(DATA_PATH, "validation_sets", "*", "colors_rf_wo_pairs.pt")
             )
         )
-    )
+    )[
+        idx_directions_wo["rf"]["rf"][THRESHOLD_IDX]
+    ]
 
-    colors_non_indexed["dnn"] = np.array(
+    colors_direction["dnn"] = np.array(
         sorted(
             glob(
                 os.path.join(DATA_PATH, "validation_sets", "*", "colors_dnn_wo_pairs.pt")
             )
         )
-    )
+    )[
+        idx_directions_wo["dnn"]["dnn"][THRESHOLD_IDX]
+    ]
 
     for bt in BLOCK_TYPES:
-        colors_non_indexed[bt] = np.array(
+        colors_direction[bt] = np.array(
             sorted(
                 glob(
                     os.path.join(
@@ -155,7 +162,7 @@ if __name__ == "__main__":
                     )
                 )
             )
-        )
+        )[idx_directions_wo[bt]["CAM"][THRESHOLD_IDX]]
 
     ## Influence of variables on color accuracy
 
@@ -430,7 +437,7 @@ if __name__ == "__main__":
 
     y = {}
 
-    for idx, color_f in enumerate(tqdm(colors_non_indexed["rf"])):
+    for idx, color_f in enumerate(tqdm(colors_direction["rf"])):
         sim_file = os.path.join(os.path.dirname(color_f), "similarity_wo_pairs.npy")
         if os.path.exists(sim_file):
             similarities["rf"].append(np.load(sim_file).mean())
@@ -438,7 +445,7 @@ if __name__ == "__main__":
 
     y["rf"] = np.array(directions_wo["rf"]["rf"][0])[exists["rf"]] * 100
 
-    for idx, color_f in enumerate(tqdm(colors_non_indexed["dnn"])):
+    for idx, color_f in enumerate(tqdm(colors_direction["dnn"])):
         sim_file = os.path.join(os.path.dirname(color_f), "similarity_wo_pairs.npy")
         if os.path.exists(sim_file):
             similarities["dnn"].append(np.load(sim_file).mean())
@@ -455,7 +462,7 @@ if __name__ == "__main__":
         avail_methods = AVAIL_METHODS if bt == "gat" else AVAIL_METHODS[:-1]
         avail_methods = avail_methods + ["diff"]
 
-        for idx, color_f in enumerate(tqdm(colors_non_indexed[bt])):
+        for idx, color_f in enumerate(tqdm(colors_direction[bt])):
             sim_file = os.path.join(os.path.dirname(color_f), "similarity_wo_pairs.npy")
             if os.path.exists(sim_file):
                 similarities[bt].append(np.load(sim_file).mean())
@@ -486,7 +493,7 @@ if __name__ == "__main__":
     exists = collections.defaultdict(list)
     y = {}
 
-    for idx, color_f in enumerate(colors_non_indexed["rf"]):
+    for idx, color_f in enumerate(colors_direction["rf"]):
         train_file = os.path.join(os.path.dirname(color_f), "training.csv")
         if os.path.exists(train_file):
             sizes["rf"].append(len(pd.read_csv(train_file)))
@@ -494,7 +501,7 @@ if __name__ == "__main__":
 
     y["rf"] = np.array(directions_wo["rf"]["rf"][0])[exists["rf"]]
 
-    for idx, color_f in enumerate(colors_non_indexed["dnn"]):
+    for idx, color_f in enumerate(colors_direction["dnn"]):
         train_file = os.path.join(os.path.dirname(color_f), "training.csv")
         if os.path.exists(train_file):
             sizes["dnn"].append(len(pd.read_csv(train_file)))
@@ -506,7 +513,7 @@ if __name__ == "__main__":
         avail_methods = AVAIL_METHODS if bt == "gat" else AVAIL_METHODS[:-1]
         avail_methods = avail_methods + ["diff"]
 
-        for idx, color_f in enumerate(tqdm(colors_non_indexed[bt])):
+        for idx, color_f in enumerate(tqdm(colors_direction[bt])):
             train_file = os.path.join(os.path.dirname(color_f), "training.csv")
             if os.path.exists(train_file):
                 sizes[bt].append(len(pd.read_csv(train_file)))
@@ -537,7 +544,7 @@ if __name__ == "__main__":
     exists = collections.defaultdict(list)
     y = {}
 
-    for idx, color_f in enumerate(colors_non_indexed["rf"]):
+    for idx, color_f in enumerate(colors_direction["rf"]):
         assay_f = os.path.join(os.path.dirname(color_f), "assay_ids.npy")
         if os.path.exists(assay_f):
             nassays["rf"].append(len(np.load(assay_f)))
@@ -546,7 +553,7 @@ if __name__ == "__main__":
     y["rf"] = np.array(directions_wo["rf"]["rf"][0])[exists["rf"]]
 
 
-    for idx, color_f in enumerate(colors_non_indexed["dnn"]):
+    for idx, color_f in enumerate(colors_direction["dnn"]):
         assay_f = os.path.join(os.path.dirname(color_f), "assay_ids.npy")
         if os.path.exists(assay_f):
             nassays["dnn"].append(len(np.load(assay_f)))
@@ -559,7 +566,7 @@ if __name__ == "__main__":
         avail_methods = AVAIL_METHODS if bt == "gat" else AVAIL_METHODS[:-1]
         avail_methods = avail_methods + ["diff"]
 
-        for idx, color_f in enumerate(tqdm(colors_non_indexed[bt])):
+        for idx, color_f in enumerate(tqdm(colors_direction[bt])):
             assay_f = os.path.join(os.path.dirname(color_f), "assay_ids.npy")
             if os.path.exists(assay_f):
                 nassays[bt].append(len(np.load(assay_f)))
@@ -595,7 +602,7 @@ if __name__ == "__main__":
 
     y = {}
 
-    for idx, color_f in enumerate(tqdm(colors_non_indexed["rf"])):
+    for idx, color_f in enumerate(tqdm(colors_direction["rf"])):
         id_ = os.path.basename(os.path.dirname(color_f))
         metrics_path = os.path.join(LOG_PATH, f"{id_}_metrics_rf.pt")
         if os.path.exists(metrics_path):
@@ -609,7 +616,7 @@ if __name__ == "__main__":
 
     y["rf"] = np.array(directions_wo["rf"]["rf"][0])[exists["rf"]]
 
-    for idx, color_f in enumerate(tqdm(colors_non_indexed["dnn"])):
+    for idx, color_f in enumerate(tqdm(colors_direction["dnn"])):
         id_ = os.path.basename(os.path.dirname(color_f))
         metrics_path = os.path.join(LOG_PATH, f"{id_}_metrics_dnn.pt")
         if os.path.exists(metrics_path):
@@ -629,7 +636,7 @@ if __name__ == "__main__":
 
         f, axs = plt.subplots(nrows=1, ncols=ncols, figsize=(14, 4))
 
-        for color_f in tqdm(colors_non_indexed[bt]):
+        for color_f in tqdm(colors_direction[bt]):
             id_ = os.path.basename(os.path.dirname(color_f))
 
             with open(os.path.join(LOG_PATH, f"{bt}_{id_}.pt"), "rb") as handle:

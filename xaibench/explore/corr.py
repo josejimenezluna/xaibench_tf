@@ -36,6 +36,5 @@ if __name__ == "__main__":
         print(f" {k} mean: {np.mean(corr):.3f}, std: {np.std(corr):.3f}")
 
 
-
     for k, corr in corrs_wo_pairs.items():
-        print(f"{k}: {np.mean(corr):.3f}, std: {np.std(corr):.3f}")
+        print(f"{k}: mean: {np.mean(corr):.3f}, std: {np.std(corr):.3f}")
