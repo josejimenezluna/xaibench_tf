@@ -189,7 +189,6 @@ if __name__ == "__main__":
     y["dnn"] = np.array(accs_wo["dnn"]["dnn"][0])[exists["dnn"]] * 100
 
     for bt in BLOCK_TYPES:
-        print(bt)
         ncols = len(AVAIL_METHODS) + 2 if bt == "gat" else len(AVAIL_METHODS) + 1
 
         f, axs = plt.subplots(nrows=1, ncols=ncols, figsize=(14, 4))
@@ -454,7 +453,6 @@ if __name__ == "__main__":
     y["dnn"] = np.array(directions_wo["dnn"]["dnn"][0])[exists["dnn"]] * 100
 
     for bt in BLOCK_TYPES:
-        print(bt)
         ncols = len(AVAIL_METHODS) + 2 if bt == "gat" else len(AVAIL_METHODS) + 1
 
         f, axs = plt.subplots(nrows=1, ncols=ncols, figsize=(14, 4))
