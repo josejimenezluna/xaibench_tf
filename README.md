@@ -7,12 +7,20 @@ Supporting data and code for "Benchmarking molecular feature attribution methods
 
 ## Structure of the benchmark
 
-Download the benchmark as well as all associated data from [here](https://www.research-collection.ethz.ch/handle/20.500.11850/504716) (~85GB, when uncompressed):
+Download the benchmark as well as all associated data from [here](https://www.research-collection.ethz.ch/handle/20.500.11850/504716) (~85GB, when uncompressed). A smaller `benchmark.tar.gz` (~90MB) file with only the necessary files to benchmark your custom feature attribution methods (and excluding all the tested ones in manuscript) is also provided for convenience:
 
 
 ```bash
-wget -O data.tar.gz https://libdrive.ethz.ch/index.php/s/PYc53dCRSuxAiqC/download
+wget -O data.tar.gz https://libdrive.ethz.ch/index.php/s/RAARSvpfjM4YqyI/download
 tar -xf data.tar.gz
+```
+
+or alternatively:
+
+```bash
+wget -O benchmark.tar.gz https://libdrive.ethz.ch/index.php/s/wYBd5jEuk9lm81b/download
+tar -xf benchmark.tar.gz
+
 ```
 
 The data is composed of subfolders, each contaning one congeneric series considered in the benchmark. Subfolders have the following structure:
@@ -119,7 +127,7 @@ wget -O logs.tar.gz https://libdrive.ethz.ch/index.php/s/PYc53dCRSuxAiqC/downloa
 And the final results presented in the manuscript (`results.tar.gz`):
 
 ```bash
-wget -O results.tar.gz https://libdrive.ethz.ch/index.php/s/PYc53dCRSuxAiqC/download
+wget -O results.tar.gz https://libdrive.ethz.ch/index.php/s/FXhMsKKip4rs8Ts/download
 ```
 
 ## Tutorial
