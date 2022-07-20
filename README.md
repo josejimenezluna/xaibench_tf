@@ -11,14 +11,14 @@ Download the benchmark as well as all associated data from [here](https://www.re
 
 
 ```bash
-wget -O data.tar.gz https://libdrive.ethz.ch/index.php/s/RAARSvpfjM4YqyI/download
+wget -O data.tar.gz "https://libdrive.ethz.ch/index.php/s/PYc53dCRSuxAiqC/download?path=%2F&files=data_v2.tar.gz"
 tar -xf data.tar.gz
 ```
 
 or alternatively:
 
 ```bash
-wget -O benchmark.tar.gz https://libdrive.ethz.ch/index.php/s/wYBd5jEuk9lm81b/download
+wget -O benchmark.tar.gz "https://libdrive.ethz.ch/index.php/s/PYc53dCRSuxAiqC/download?path=%2F&files=benchmark.tar.gz"
 tar -xf benchmark.tar.gz
 
 ```
