@@ -115,19 +115,19 @@ All trained models as well as generated results are also available for download.
 Download trained models (`models.tar.gz`):
 
 ```bash
-wget -O models.tar.gz https://libdrive.ethz.ch/index.php/s/PYc53dCRSuxAiqC/download
+wget -O models.tar.gz "https://libdrive.ethz.ch/index.php/s/PYc53dCRSuxAiqC/download?path=%2F&files=models.tar.gz"
 ```
 
 Logs with training metrics (`logs.tar.gz`):
 
 ```bash
-wget -O logs.tar.gz https://libdrive.ethz.ch/index.php/s/PYc53dCRSuxAiqC/download
+wget -O logs.tar.gz "https://libdrive.ethz.ch/index.php/s/PYc53dCRSuxAiqC/download?path=%2F&files=logs.tar.gz"
 ```
 
 And the final results presented in the manuscript (`results.tar.gz`):
 
 ```bash
-wget -O results.tar.gz https://libdrive.ethz.ch/index.php/s/FXhMsKKip4rs8Ts/download
+wget -O results.tar.gz "https://libdrive.ethz.ch/index.php/s/PYc53dCRSuxAiqC/download?path=%2F&files=results_v2.tar.gz"
 ```
 
 ## Tutorial
