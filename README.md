@@ -139,13 +139,16 @@ If you are interested in using this work to benchmark additional feature attribu
 If you find this work, code, or parts thereof useful, please consider citing:
 
 ```
- @article{jimenezluna2021benchmarking,
- title={Benchmarking molecular feature attribution methods with activity cliffs},
- DOI={10.33774/chemrxiv-2021-pp88m},
- journal={ChemRxiv},
- publisher={Cambridge Open Engage},
- author={Jiménez Luna, José and Skalic, Miha and Weskamp, Nils},
- year={2021}}
+@article{jimenez2022benchmarking,
+  title={Benchmarking Molecular Feature Attribution Methods with Activity Cliffs},
+  author={Jim{\'e}nez-Luna, Jos{\'e} and Skalic, Miha and Weskamp, Nils},
+  journal={Journal of Chemical Information and Modeling},
+  volume={62},
+  number={2},
+  pages={274--283},
+  year={2022},
+  publisher={ACS Publications}
+}
 
 ```
 
